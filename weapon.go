@@ -13,24 +13,24 @@ type FIRE_Args struct {
 	Power     float64
 }
 
-type weapon struct {
+type Weapon struct {
 	partT
-	Energy float64
+	energy float64
 }
 
-func NewWeapon001(pos mgl64.Vec3) weapon {
-	return weapon{
+func NewWeapon001(pos mgl64.Vec3) Weapon {
+	return Weapon{
 		partT: partT{
 			Position: pos,
 			Mass:     100,
 		},
-		Energy: 5,
+		energy: 5,
 	}
 }
 
-func (self *weapon) HandleAction(action Action, ship *shipT) {
+func (self *Weapon) HandleAction(action Action, ship *shipT) {
 	switch action.Opertation {
 	case FIRE:
-		ship.ConsumeEngery(self.energy)
+		ship.ConsumeEnergy(self.energy)
 	}
 }

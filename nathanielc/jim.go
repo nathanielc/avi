@@ -26,9 +26,9 @@ func (self *JimSpaceShip) think() {
 	moveOrder := avi.Order{
 		Actions: []avi.Action{
 			avi.Action{
-				PartID:     1,
+				PartID:     "t0",
 				Opertation: avi.THRUST,
-				Args: avi.THRUSTArgs{
+				Args: avi.THRUST_Args{
 					Direction: mgl64.Vec3{1, 1, 1},
 					Power:     0.50,
 				},
@@ -47,11 +47,17 @@ func (self *JimSpaceShip) think() {
 	}
 }
 
-func (self *JimSpaceShip) GetParts() []avi.Part {
+func (self *JimSpaceShip) GetParts() map[string]avi.Part{
+	engine := avi.NewEngine001(mgl64.Vec3{0, 0, 1})
 	thruster0 := avi.NewThruster001(mgl64.Vec3{0, -1, 0})
 	thruster1 := avi.NewThruster001(mgl64.Vec3{0, 1, 0})
-	return []avi.Part{
-		thruster0,
-		thruster1,
+	weapon := avi.NewWeapon001(mgl64.Vec3{0, 0, 1})
+	sensor := avi.NewSensor001(mgl64.Vec3{0, 0, 1})
+	return map[string]avi.Part{
+		"engine" : &engine,
+		"t0" : &thruster0,
+		"t1" : &thruster1,
+		"gun" : &weapon,
+		"sensor" : &sensor,
 	}
 }

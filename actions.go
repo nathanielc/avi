@@ -11,7 +11,7 @@ type OrderResult struct {
 }
 
 type Action struct {
-	PartID     int
+	PartID     string
 	Opertation Opertation
 	Args       interface{}
 }

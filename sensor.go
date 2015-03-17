@@ -8,24 +8,24 @@ const (
 	SIMPLE_SCAN = Opertation(iota)
 )
 
-type sensor struct {
+type Sensor struct {
 	partT
-	Energy float64
+	energy float64
 }
 
-func NewSensor001(pos mgl64.Vec3) sensor {
-	return sensor{
+func NewSensor001(pos mgl64.Vec3) Sensor {
+	return Sensor{
 		partT: partT{
 			Position: pos,
 			Mass:     10,
 		},
-		Energy: 1,
+		energy: 1,
 	}
 }
 
-func (self *sensor) HandleAction(action Action, ship *shipT) {
+func (self *Sensor) HandleAction(action Action, ship *shipT) {
 	switch action.Opertation {
 	case SIMPLE_SCAN:
-		ship.ConsumeEngery(self.energy)
+		ship.ConsumeEnergy(self.energy)
 	}
 }

@@ -3,17 +3,21 @@ package avi
 import (
 	"errors"
 	"github.com/go-gl/mathgl/mgl64"
+	"log"
+	"reflect"
 )
 
 var ErrOutofEnergy = errors.New("out of energy")
 
+var thrusterType = reflect.TypeOf(Thruster{})
+var engineType = reflect.TypeOf(Engine{})
+var weaponType = reflect.TypeOf(Weapon{})
+var sensorType = reflect.TypeOf(Sensor{})
+
 //Exported interface for ships
 type Ship interface {
 	Launch(orders chan Order, results chan OrderResult)
-	GetThrusters() []thruster
-	GetWeapons() []weapon
-	GetEngines() []engine
-	GetSensors() []sensor
+	GetParts() map[string]Part
 }
 
 //Internal representaion of the ship
@@ -21,15 +25,68 @@ type shipT struct {
 	ship          Ship
 	orders        chan Order
 	results       chan OrderResult
-	thrusters     []*thruster
-	weapons       []*weapon
-	engines       []*engine
-	sensors       []*sensor
+	parts         map[string]Part
+	thrusters     []*Thruster
+	weapons       []*Weapon
+	engines       []*Engine
+	sensors       []*Sensor
 	position      mgl64.Vec3
 	velocity      mgl64.Vec3
 	totalMass     float64
 	totalEnergy   float64
 	currentEnergy float64
+}
+
+
+func newShip(ship Ship) *shipT{
+
+	orders := make(chan Order)
+	results := make(chan OrderResult)
+	newShip := &shipT{
+		ship:    ship,
+		orders:  orders,
+		results: results,
+		parts: make(map[string]Part),
+		thrusters: make([]*Thruster, 0),
+		engines: make([]*Engine, 0),
+		weapons: make([]*Weapon, 0),
+		sensors: make([]*Sensor, 0),
+	}
+	
+	for id, part := range ship.GetParts() {
+		log.Println(id, part)
+		newShip.addPart(id, part)
+
+		switch reflect.TypeOf(part) {
+		case thrusterType:
+			t := &Thruster{}
+			*t = *(part.(*Thruster))
+			newShip.thrusters = append(newShip.thrusters, t)
+		case engineType:
+			e := &Engine{}
+			*e = *(part.(*Engine))
+			newShip.engines = append(newShip.engines, e)
+		case weaponType:
+			w := &Weapon{}
+			*w = *(part.(*Weapon))
+			newShip.weapons = append(newShip.weapons, w)
+		case sensorType:
+			s := &Sensor{}
+			*s = *(part.(*Sensor))
+			newShip.sensors = append(newShip.sensors, s)
+		}
+	}
+
+	return newShip
+}
+
+func (ship *shipT) addPart(id string, part Part) bool {
+	_, ok := ship.parts[id]
+	if !ok {
+		ship.parts[id] = part
+	}
+
+	return !ok
 }
 
 //Tell the ship to boot up. This has to happen anytime a part is
@@ -61,14 +118,29 @@ func (ship *shipT) Energize() {
 
 // Consume a given amount of energy for another component on the ship
 func (ship *shipT) ConsumeEnergy(amount float64) error {
-	self.currentEnergy -= amount
-	if self.currentEnergy < 0 {
-		self.currentEnergy = 0
+	ship.currentEnergy -= amount
+	if ship.currentEnergy < 0 {
+		ship.currentEnergy = 0
 		return ErrOutofEnergy
 	}
+	return nil
 }
 
 // Apply a given amount of thrust in a certain direction
 func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
 
+}
+
+func (ship *shipT) ProcessOrder(order Order) {
+
+	result := OrderResult{
+		Actions: make([]bool, len(order.Actions)),
+	}
+	for i, action := range order.Actions {
+		part := ship.parts[action.PartID]
+		part.HandleAction(action, ship)
+		result.Actions[i] = false
+	}
+
+	ship.results <- result
 }

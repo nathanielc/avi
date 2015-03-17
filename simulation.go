@@ -15,15 +15,7 @@ func NewSimulation() *Simulation {
 }
 
 func (self *Simulation) AddShip(ship Ship) {
-	orders := make(chan Order)
-	results := make(chan OrderResult)
-	self.ships = append(self.ships,
-		&shipT{
-			ship:    ship,
-			orders:  orders,
-			results: results,
-			parts:   ship.GetParts(),
-		})
+	self.ships = append(self.ships, newShip(ship))
 }
 
 func (self *Simulation) Start() {
@@ -45,7 +37,7 @@ func (self *Simulation) loop() {
 			ship.Energize()
 			select {
 			case order := <-ship.orders:
-				self.processOrder(ship, order)
+				ship.ProcessOrder(order)
 			default:
 				log.Println("No orders from ship", ship.ship, self.tick)
 			}
@@ -55,17 +47,3 @@ func (self *Simulation) loop() {
 
 }
 
-func (self *Simulation) processOrder(ship *shipT, order Order) {
-
-	result := OrderResult{
-		Actions: make([]bool, len(order.Actions)),
-	}
-	for i, action := range order.Actions {
-		part := ship.parts[action.PartID]
-		part.HandleAction(action, ship)
-		result.Actions[i] = false
-	}
-
-	ship.results <- result
-
-}

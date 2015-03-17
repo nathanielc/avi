@@ -13,31 +13,30 @@ type THRUST_Args struct {
 	Power     float64
 }
 
-type thruster struct {
+type Thruster struct {
 	partT
-	Force  float64
-	Energy float64
+	force  float64
+	energy float64
 }
 
-func NewThruster001(pos mgl64.Vec3) thruster {
-	return thruster{
+func NewThruster001(pos mgl64.Vec3) Thruster {
+	return Thruster{
 		partT: partT{
 			Position: pos,
 			Mass:     1000,
 		},
-		Force:  100,
-		Energy: 10,
+		force:  100,
+		energy: 10,
 	}
 }
 
-func (self thruster) HandleAction(action Action, ship *shipT) {
+func (self *Thruster) HandleAction(action Action, ship *shipT) {
 	switch action.Opertation {
 	case THRUST:
 		args := action.Args.(THRUST_Args)
-		log.Println("Pos:", self.Position)
-		force := self.Force * args.Power
-		energy := self.Energy * args.Power
-		ship.ConsumeEngery(energy)
+		force := self.force * args.Power
+		energy := self.energy * args.Power
+		ship.ConsumeEnergy(energy)
 		ship.ApplyThrust(args.Direction, force)
 
 	}

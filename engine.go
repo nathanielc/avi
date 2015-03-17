@@ -13,31 +13,31 @@ type POWER_ON_Args struct {
 	Power float64
 }
 
-type engine struct {
+type Engine struct {
 	partT
-	Energy        float64
+	energy        float64
 	currentOutput float64
 }
 
-func NewEngine001(pos mgl64.Vec3) engine {
-	return engine{
+func NewEngine001(pos mgl64.Vec3) Engine {
+	return Engine{
 		partT: partT{
 			Position: pos,
 			Mass:     2000,
 		},
-		Energy: 100,
+		energy: 100,
 	}
 }
 
-func (self *engine) GetOutput() float64 {
+func (self *Engine) GetOutput() float64 {
 	return self.currentOutput
 }
 
-func (self *engine) HandleAction(action Action, ship *shipT) {
+func (self *Engine) HandleAction(action Action, ship *shipT) {
 	switch action.Opertation {
 	case POWER_ON:
 		args := action.Args.(POWER_ON_Args)
-		self.currentOutput = self.Energy * args.Power
+		self.currentOutput = self.energy * args.Power
 	case POWER_OFF:
 		self.currentOutput = 0
 	}
