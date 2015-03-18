@@ -16,85 +16,83 @@ var sensorType = reflect.TypeOf(&Sensor{})
 
 //Exported interface for ships
 type Ship interface {
-	Launch()
-	GetParts() map[string]Part
+	Tick()
+	GetParts() []Part
 }
 
 //Internal representaion of the ship
 type shipT struct {
 	ship          Ship
-	parts         map[string]Part
+	objectT
+	parts         []Part
 	thrusters     []*Thruster
 	weapons       []*Weapon
 	engines       []*Engine
 	sensors       []*Sensor
-	position      mgl64.Vec3
-	velocity      mgl64.Vec3
-	totalMass     float64
 	totalEnergy   float64
 	currentEnergy float64
 }
 
 
-func newShip(ship Ship) *shipT{
+func newShip(pos mgl64.Vec3, ship Ship) *shipT{
 
 	newShip := &shipT{
 		ship:    ship,
-		parts: make(map[string]Part),
+		parts: make([]Part, 0),
 		thrusters: make([]*Thruster, 0),
 		engines: make([]*Engine, 0),
 		weapons: make([]*Weapon, 0),
 		sensors: make([]*Sensor, 0),
 	}
-	
-	for id, part := range ship.GetParts() {
-		log.Println(id, part)
-		newShip.addPart(id, part)
 
-		switch reflect.TypeOf(part) {
-		case thrusterType:
-			t := part.(*Thruster)
-			newShip.thrusters = append(newShip.thrusters, t)
-		case engineType:
-			e := part.(*Engine)
-			newShip.engines = append(newShip.engines, e)
-		case weaponType:
-			w := part.(*Weapon)
-			newShip.weapons = append(newShip.weapons, w)
-		case sensorType:
-			s := part.(*Sensor)
-			newShip.sensors = append(newShip.sensors, s)
-		}
-	}
+	newShip.position = pos
+
+
+	newShip.addParts()
+
+	newShip.determineSize()
+
 
 	return newShip
 }
 
-func (ship *shipT) addPart(id string, part Part) bool {
-	_, ok := ship.parts[id]
-	if !ok {
-		ship.parts[id] = part
-	}
+func (ship *shipT) addParts() {
+	for _, part := range ship.ship.GetParts() {
+		log.Println(part)
+		ship.parts = append(ship.parts, part)
+		part.setShip(ship)
 
-	return !ok
+		ship.mass += part.GetMass()
+
+		switch reflect.TypeOf(part) {
+		case thrusterType:
+			t := part.(*Thruster)
+			ship.thrusters = append(ship.thrusters, t)
+		case engineType:
+			e := part.(*Engine)
+			ship.engines = append(ship.engines, e)
+		case weaponType:
+			w := part.(*Weapon)
+			ship.weapons = append(ship.weapons, w)
+		case sensorType:
+			s := part.(*Sensor)
+			ship.sensors = append(ship.sensors, s)
+		}
+	}
 }
 
-//Tell the ship to boot up. This has to happen anytime a part is
-// lost and at the start
-func (ship *shipT) Boot() {
-	ship.totalMass = 0
-	for _, thruster := range ship.thrusters {
-		ship.totalMass += thruster.Mass
+
+func (ship *shipT) determineSize() {
+
+	maxRadius := 0.0
+
+	for _, part := range ship.parts {
+		radius := part.GetPosition().Len() + part.GetRadius()
+		if radius > maxRadius {
+			maxRadius = radius
+		}
 	}
-	for _, weapon := range ship.weapons {
-		ship.totalMass += weapon.Mass
-	}
-	for _, engine := range ship.engines {
-		ship.totalMass += engine.Mass
-	}
-	for _, sensor := range ship.sensors {
-		ship.totalMass += sensor.Mass
-	}
+	ship.radius = maxRadius
 }
 
 //Determine how much power the ship is supplying
@@ -104,6 +102,7 @@ func (ship *shipT) Energize() {
 		ship.totalEnergy += engine.getOutput()
 	}
 	ship.currentEnergy = ship.totalEnergy
+	log.Println("Ship energized", ship.totalEnergy)
 }
 
 // Consume a given amount of energy for another component on the ship
@@ -118,15 +117,39 @@ func (ship *shipT) ConsumeEnergy(amount float64) error {
 
 // Apply a given amount of thrust in a certain direction
 func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
-
+	accerlation := dir.Mul(force / ship.mass)
+	ship.velocity = ship.velocity.Add(accerlation.Mul(timePerTick))
 }
 
-func (ship *shipT) ProcessOrders() {
+func (ship *shipT) Tick() {
+	ship.ship.Tick()
+}
 
-	for _, part := range ship.parts {
-		order := part.GetOrder()
-		if order != nil {
-			order(ship)
-		}
+
+// Single Direction ship
+
+type oneDirShip struct {
+	engine *Engine
+	thruster *Thruster
+	dir mgl64.Vec3
+}
+
+func newOneDirShip(dir mgl64.Vec3) Ship {
+	return &oneDirShip{dir:dir}
+}
+
+
+func (self *oneDirShip) Tick() {
+	self.engine.PowerOn(1.0)
+	self.thruster.Thrust(self.dir, 1.0)
+}
+
+func (self *oneDirShip) GetParts() []Part{
+	self.engine = NewEngine001(mgl64.Vec3{0, 0, 1})
+
+	self.thruster = NewThruster001(mgl64.Vec3{0, -1, 0})
+	return []Part{
+		self.engine,
+		self.thruster,
 	}
 }

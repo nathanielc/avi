@@ -12,8 +12,11 @@ type Sensor struct {
 func NewSensor001(pos mgl64.Vec3) *Sensor {
 	return &Sensor{
 		partT: partT{
-			Position: pos,
-			Mass:     10,
+			objectT: objectT{
+				position: pos,
+				mass:     100,
+				radius:   0.5,
+			},
 		},
 		energy: 1,
 	}

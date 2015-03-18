@@ -17,30 +17,26 @@ type Thruster struct {
 func NewThruster001(pos mgl64.Vec3) *Thruster {
 	return &Thruster{
 		partT: partT{
-			Position: pos,
-			Mass:     1000,
+			objectT: objectT{
+				position: pos,
+				mass:     1500,
+				radius:   2,
+			},
 		},
 		force:  100,
 		energy: 10,
 	}
 }
 
-func (self *Thruster) Thrust(dir mgl64.Vec3, power float64) <-chan error {
+func (self *Thruster) Thrust(dir mgl64.Vec3, power float64) error {
 
-	ch := make(chan error)
-	self.currentOrder = func (ship *shipT) {
-		defer close(ch)
-		log.Println("thrust", ch)
-		force := self.force * power
-		energy := self.energy * power
-		err := ship.ConsumeEnergy(energy)
-		if err != nil {
-			log.Println("thrust err", ch)
-			ch <- err
-			return
-		}
-		ship.ApplyThrust(dir, force)
-		ch <- nil
+	force := self.force * power
+	energy := self.energy * power
+	err := self.ship.ConsumeEnergy(energy)
+	if err != nil {
+		log.Println("thrust err")
+		return err
 	}
-	return ch
+	self.ship.ApplyThrust(dir, force)
+	return nil
 }

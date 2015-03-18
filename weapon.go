@@ -12,8 +12,11 @@ type Weapon struct {
 func NewWeapon001(pos mgl64.Vec3) *Weapon {
 	return &Weapon{
 		partT: partT{
-			Position: pos,
-			Mass:     100,
+			objectT: objectT{
+				position: pos,
+				mass:     1000,
+				radius:   1,
+			},
 		},
 		energy: 5,
 	}
