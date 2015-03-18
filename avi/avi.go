@@ -11,7 +11,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	ship := nathanielc.NewJim()
-	eng := avi.NewSimulation()
-	eng.AddShip(ship)
-	eng.Start()
+	sim := avi.NewSimulation()
+	sim.AddShip(ship)
+	sim.Start()
 }

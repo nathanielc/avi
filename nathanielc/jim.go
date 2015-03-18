@@ -7,57 +7,57 @@ import (
 )
 
 type JimSpaceShip struct {
-	orders  chan avi.Order
-	results chan avi.OrderResult
+	engines []*avi.Engine
+	thrusters []*avi.Thruster
 }
 
 func NewJim() avi.Ship {
 	return &JimSpaceShip{}
 }
 
-func (self *JimSpaceShip) Launch(orders chan avi.Order, results chan avi.OrderResult) {
-	self.orders = orders
-	self.results = results
-
+func (self *JimSpaceShip) Launch() {
 	go self.think()
 }
 
 func (self *JimSpaceShip) think() {
-	moveOrder := avi.Order{
-		Actions: []avi.Action{
-			avi.Action{
-				PartID:     "t0",
-				Opertation: avi.THRUST,
-				Args: avi.THRUST_Args{
-					Direction: mgl64.Vec3{1, 1, 1},
-					Power:     0.50,
-				},
-			},
-		},
-	}
+	tick := 0
 	for {
+		tick++
 		log.Println("Sending orders")
-		self.orders <- moveOrder
-		results := <-self.results
-		for id, success := range results.Actions {
-			if !success {
-				log.Println("Failed action", id)
-			}
+		tr0 := self.thrusters[0].Thrust(mgl64.Vec3{1,1,1}, 1.0)
+		tr1 := self.thrusters[1].Thrust(mgl64.Vec3{1,1,1}, 1.0)
+		log.Println("recv")
+		if e0 := <-tr0; e0 == nil {
+			log.Println("Successfull thrust0")
+		} else {
+			log.Println("Failed thrust0", e0)
+		}
+		if e1 := <-tr1; e1 == nil{
+			log.Println("Successfull thrust1")
+		} else {
+			log.Println("Failed thrust1", e1)
 		}
 	}
 }
 
 func (self *JimSpaceShip) GetParts() map[string]avi.Part{
+	self.engines = make([]*avi.Engine, 1)
 	engine := avi.NewEngine001(mgl64.Vec3{0, 0, 1})
+	self.engines[0] = engine
+
+	self.thrusters = make([]*avi.Thruster, 2)
 	thruster0 := avi.NewThruster001(mgl64.Vec3{0, -1, 0})
 	thruster1 := avi.NewThruster001(mgl64.Vec3{0, 1, 0})
+	self.thrusters[0] = thruster0
+	self.thrusters[1] = thruster1
+
 	weapon := avi.NewWeapon001(mgl64.Vec3{0, 0, 1})
 	sensor := avi.NewSensor001(mgl64.Vec3{0, 0, 1})
 	return map[string]avi.Part{
-		"engine" : &engine,
-		"t0" : &thruster0,
-		"t1" : &thruster1,
-		"gun" : &weapon,
-		"sensor" : &sensor,
+		"engine" : engine,
+		"t0" : thruster0,
+		"t1" : thruster1,
+		"gun" : weapon,
+		"sensor" : sensor,
 	}
 }

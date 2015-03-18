@@ -7,24 +7,22 @@ import (
 	"reflect"
 )
 
-var ErrOutofEnergy = errors.New("out of energy")
+var ErrOutOfEnergy = errors.New("out of energy")
 
-var thrusterType = reflect.TypeOf(Thruster{})
-var engineType = reflect.TypeOf(Engine{})
-var weaponType = reflect.TypeOf(Weapon{})
-var sensorType = reflect.TypeOf(Sensor{})
+var thrusterType = reflect.TypeOf(&Thruster{})
+var engineType = reflect.TypeOf(&Engine{})
+var weaponType = reflect.TypeOf(&Weapon{})
+var sensorType = reflect.TypeOf(&Sensor{})
 
 //Exported interface for ships
 type Ship interface {
-	Launch(orders chan Order, results chan OrderResult)
+	Launch()
 	GetParts() map[string]Part
 }
 
 //Internal representaion of the ship
 type shipT struct {
 	ship          Ship
-	orders        chan Order
-	results       chan OrderResult
 	parts         map[string]Part
 	thrusters     []*Thruster
 	weapons       []*Weapon
@@ -40,12 +38,8 @@ type shipT struct {
 
 func newShip(ship Ship) *shipT{
 
-	orders := make(chan Order)
-	results := make(chan OrderResult)
 	newShip := &shipT{
 		ship:    ship,
-		orders:  orders,
-		results: results,
 		parts: make(map[string]Part),
 		thrusters: make([]*Thruster, 0),
 		engines: make([]*Engine, 0),
@@ -59,20 +53,16 @@ func newShip(ship Ship) *shipT{
 
 		switch reflect.TypeOf(part) {
 		case thrusterType:
-			t := &Thruster{}
-			*t = *(part.(*Thruster))
+			t := part.(*Thruster)
 			newShip.thrusters = append(newShip.thrusters, t)
 		case engineType:
-			e := &Engine{}
-			*e = *(part.(*Engine))
+			e := part.(*Engine)
 			newShip.engines = append(newShip.engines, e)
 		case weaponType:
-			w := &Weapon{}
-			*w = *(part.(*Weapon))
+			w := part.(*Weapon)
 			newShip.weapons = append(newShip.weapons, w)
 		case sensorType:
-			s := &Sensor{}
-			*s = *(part.(*Sensor))
+			s := part.(*Sensor)
 			newShip.sensors = append(newShip.sensors, s)
 		}
 	}
@@ -111,7 +101,7 @@ func (ship *shipT) Boot() {
 func (ship *shipT) Energize() {
 	ship.totalEnergy = 0
 	for _, engine := range ship.engines {
-		ship.totalEnergy += engine.GetOutput()
+		ship.totalEnergy += engine.getOutput()
 	}
 	ship.currentEnergy = ship.totalEnergy
 }
@@ -121,7 +111,7 @@ func (ship *shipT) ConsumeEnergy(amount float64) error {
 	ship.currentEnergy -= amount
 	if ship.currentEnergy < 0 {
 		ship.currentEnergy = 0
-		return ErrOutofEnergy
+		return ErrOutOfEnergy
 	}
 	return nil
 }
@@ -131,16 +121,12 @@ func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
 
 }
 
-func (ship *shipT) ProcessOrder(order Order) {
+func (ship *shipT) ProcessOrders() {
 
-	result := OrderResult{
-		Actions: make([]bool, len(order.Actions)),
+	for _, part := range ship.parts {
+		order := part.GetOrder()
+		if order != nil {
+			order(ship)
+		}
 	}
-	for i, action := range order.Actions {
-		part := ship.parts[action.PartID]
-		part.HandleAction(action, ship)
-		result.Actions[i] = false
-	}
-
-	ship.results <- result
 }

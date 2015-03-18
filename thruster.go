@@ -2,25 +2,20 @@ package avi
 
 import (
 	"github.com/go-gl/mathgl/mgl64"
+	"log"
 )
-
-const (
-	THRUST = Opertation(iota)
-)
-
-type THRUST_Args struct {
-	Direction mgl64.Vec3
-	Power     float64
-}
 
 type Thruster struct {
 	partT
 	force  float64
 	energy float64
+
+	thrustChan chan error
+	thrustOrder func(chan error, *shipT)
 }
 
-func NewThruster001(pos mgl64.Vec3) Thruster {
-	return Thruster{
+func NewThruster001(pos mgl64.Vec3) *Thruster {
+	return &Thruster{
 		partT: partT{
 			Position: pos,
 			Mass:     1000,
@@ -30,14 +25,22 @@ func NewThruster001(pos mgl64.Vec3) Thruster {
 	}
 }
 
-func (self *Thruster) HandleAction(action Action, ship *shipT) {
-	switch action.Opertation {
-	case THRUST:
-		args := action.Args.(THRUST_Args)
-		force := self.force * args.Power
-		energy := self.energy * args.Power
-		ship.ConsumeEnergy(energy)
-		ship.ApplyThrust(args.Direction, force)
+func (self *Thruster) Thrust(dir mgl64.Vec3, power float64) <-chan error {
 
+	ch := make(chan error)
+	self.currentOrder = func (ship *shipT) {
+		defer close(ch)
+		log.Println("thrust", ch)
+		force := self.force * power
+		energy := self.energy * power
+		err := ship.ConsumeEnergy(energy)
+		if err != nil {
+			log.Println("thrust err", ch)
+			ch <- err
+			return
+		}
+		ship.ApplyThrust(dir, force)
+		ch <- nil
 	}
+	return ch
 }

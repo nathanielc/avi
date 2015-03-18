@@ -22,7 +22,7 @@ func (self *Simulation) Start() {
 	log.Println("Starting AVI Simulation")
 
 	for _, shipChan := range self.ships {
-		shipChan.ship.Launch(shipChan.orders, shipChan.results)
+		shipChan.ship.Launch()
 	}
 
 	self.loop()
@@ -33,14 +33,10 @@ func (self *Simulation) loop() {
 	ticker := time.Tick(time.Microsecond)
 	for {
 		_ = <-ticker
+		log.Println("tick:", self.tick)
 		for _, ship := range self.ships {
 			ship.Energize()
-			select {
-			case order := <-ship.orders:
-				ship.ProcessOrder(order)
-			default:
-				log.Println("No orders from ship", ship.ship, self.tick)
-			}
+			ship.ProcessOrders()
 		}
 		self.tick++
 	}

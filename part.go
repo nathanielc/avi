@@ -7,12 +7,13 @@ import (
 type Part interface {
 	GetPosition() mgl64.Vec3
 	GetMass() float64
-	HandleAction(action Action, ship *shipT)
+	GetOrder() Order
 }
 
 type partT struct {
 	Position mgl64.Vec3
 	Mass     float64
+	currentOrder Order
 }
 
 func (part *partT) GetPosition() mgl64.Vec3 {
@@ -22,3 +23,11 @@ func (part *partT) GetPosition() mgl64.Vec3 {
 func (part *partT) GetMass() float64 {
 	return part.Mass
 }
+
+func (part *partT) GetOrder() Order {
+	order := part.currentOrder
+	part.currentOrder = nil
+	return order
+}
+
+
