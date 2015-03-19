@@ -21,17 +21,17 @@ func NewJim() avi.Ship {
 
 
 func (self *JimSpaceShip) Tick() {
-	logger.Debugln("Sending orders")
+	logger.Debug.Println("Sending orders")
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)
 		if err != nil {
-			logger.Debugln("Failed to power engines", err)
+			logger.Debug.Println("Failed to power engines", err)
 		}
 	}
 	for _, thruster := range self.Thrusters {
 		err := thruster.Thrust(self.dir, 1.0)
 		if err != nil {
-			logger.Debugln("Failed to thrust", err)
+			logger.Debug.Println("Failed to thrust", err)
 		}
 	}
 }

@@ -16,12 +16,14 @@ func main() {
 
 	flag.Parse()
 
+	logger.Init()
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Load parts
 	pf, err := os.Open(*partsFile)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	defer pf.Close()
 	parts, err := avi.LoadPartsFromFile(pf)
@@ -29,12 +31,12 @@ func main() {
 	// Load map
 	mf, err := os.Open(*mapFile)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	defer mf.Close()
 	mp, err := avi.LoadMapFromFile(mf)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 
 	// Load fleets
@@ -43,12 +45,12 @@ func main() {
 	for _, fleetFile := range fleetFiles {
 		ff, err := os.Open(fleetFile)
 		if err != nil {
-			logger.Fatal(err)
+			logger.Error.Fatal(err)
 		}
 		defer ff.Close()
 		fleet, err := avi.LoadFleetFromFile(ff)
 		if err != nil {
-			logger.Fatal(err)
+			logger.Error.Fatal(err)
 		}
 
 		fleets = append(fleets, fleet)
@@ -56,7 +58,7 @@ func main() {
 
 	sim, err := avi.NewSimulation(mp, parts, fleets)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Error.Fatal(err)
 	}
 	sim.Start()
 }

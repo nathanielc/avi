@@ -76,7 +76,7 @@ func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, ship Ship, parts []
 	if err != nil {
 		return err
 	}
-	logger.Debugln("Added new ship", s.GetMass())
+	logger.Debug.Println("Added new ship", s.GetMass())
 	sim.ships = append(sim.ships, s)
 
 	sim.survivors[fleet]++
@@ -88,7 +88,7 @@ func (sim *Simulation) addProjectile(p *projectile) {
 }
 
 func (sim *Simulation) Start() {
-	logger.Infoln("Starting AVI Simulation")
+	logger.Info.Println("Starting AVI Simulation")
 
 	sim.loop()
 }
@@ -208,7 +208,7 @@ func (sim *Simulation) collideInSector(obj object, x, y, z int64) {
 		distanceApart := obj.GetPosition().Sub(other.GetPosition()).Len()
 		radii := obj.GetRadius() + other.GetRadius()
 		if distanceApart < radii {
-			logger.Debugln("Collision", obj.GetPosition(), other.GetPosition())
+			logger.Debug.Println("Collision", obj.GetPosition(), other.GetPosition())
 			sim.collisions = append(sim.collisions, collision{
 				obj,
 				other,

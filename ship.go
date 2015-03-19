@@ -85,7 +85,7 @@ func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 		return err
 	}
 	for _, part := range parts {
-		logger.Debugln("Adding part to ship")
+		logger.Debug.Println("Adding part to ship")
 		ship.parts = append(ship.parts, part)
 		part.setShip(ship)
 
