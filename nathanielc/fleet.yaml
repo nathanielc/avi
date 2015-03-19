@@ -2,27 +2,32 @@
 name: gophers
 center: [-1000, -1000, -1000]
 ships:
-  - *JIM
+  - name: jim
+    position: [0, 0, 0]
+    parts: *JIM_PARTS
+  - name: jim
+    position: [100, 100, 100]
+    parts: *JIM_PARTS
+  - name: jim
+    position: [200, 200, 200]
+    parts: *JIM_PARTS
 
 
 
 ship_types:
-  jim: &JIM
-    name: jim
-    position: [0, 0, 0]
-    parts:
-      - name: nuclear
-        type: engine
-        position: [0,0,0]
-      - name: rocket
-        type: thruster
-        position: [1,0,0]
-      - name: rocket
-        type: thruster
-        position: [-1,0,0]
-      - name: pea-shooter
-        type: weapon
-        position: [0,1,0]
-      - name: antenna
-        type: sensor
-        position: [0,0,-1]
+  parts: &JIM_PARTS
+    - name: nuclear
+      type: engine
+      position: [0,0,0]
+    - name: rocket
+      type: thruster
+      position: [1,0,0]
+    - name: rocket
+      type: thruster
+      position: [-1,0,0]
+    - name: pea-shooter
+      type: weapon
+      position: [0,1,0]
+    - name: antenna
+      type: sensor
+      position: [0,0,-1]
