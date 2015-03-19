@@ -3,7 +3,7 @@ package avi
 import (
 	"errors"
 	"github.com/go-gl/mathgl/mgl64"
-	"log"
+	"github.com/nvcook42/avi/logger"
 	"reflect"
 )
 
@@ -17,12 +17,14 @@ var sensorType = reflect.TypeOf(&Sensor{})
 //Exported interface for ships
 type Ship interface {
 	Tick()
-	GetParts() []Part
+	LinkParts([]ShipPartConf, *PartsConf) ([]Part, error)
 }
 
 //Internal representaion of the ship
 type shipT struct {
 	ship          Ship
+	fleet         string
+	sim           *Simulation
 	objectT
 	parts         []Part
 	thrusters     []*Thruster
@@ -33,10 +35,28 @@ type shipT struct {
 	currentEnergy float64
 }
 
+type shipFactory func() Ship
+var registeredShips = make(map[string]shipFactory)
 
-func newShip(pos mgl64.Vec3, ship Ship) *shipT{
+//Register a ship to make it available
+func RegisterShip(name string, sf shipFactory) {
+	registeredShips[name] = sf
+}
+
+// Get a registered ship by name
+func getShipByName(name string) Ship {
+	if sf, ok := registeredShips[name]; ok {
+		return sf()
+	}
+	return nil
+}
+
+
+func newShip(sim *Simulation, fleet string, pos mgl64.Vec3, ship Ship, parts []ShipPartConf) (*shipT, error) {
 
 	newShip := &shipT{
+		sim: sim,
+		fleet: fleet,
 		ship:    ship,
 		parts: make([]Part, 0),
 		thrusters: make([]*Thruster, 0),
@@ -48,17 +68,24 @@ func newShip(pos mgl64.Vec3, ship Ship) *shipT{
 	newShip.position = pos
 
 
-	newShip.addParts()
+	err := newShip.addParts(parts)
+	if err != nil {
+		return nil, err
+	}
 
 	newShip.determineSize()
 
 
-	return newShip
+	return newShip, nil
 }
 
-func (ship *shipT) addParts() {
-	for _, part := range ship.ship.GetParts() {
-		log.Println(part)
+func (ship *shipT) addParts(partsConf []ShipPartConf) error {
+	parts, err := ship.ship.LinkParts(partsConf, ship.sim.availableParts)
+	if err != nil {
+		return err
+	}
+	for _, part := range parts {
+		logger.Debugln("Adding part to ship")
 		ship.parts = append(ship.parts, part)
 		part.setShip(ship)
 
@@ -79,6 +106,7 @@ func (ship *shipT) addParts() {
 			ship.sensors = append(ship.sensors, s)
 		}
 	}
+	return nil
 }
 
 
@@ -102,7 +130,6 @@ func (ship *shipT) Energize() {
 		ship.totalEnergy += engine.getOutput()
 	}
 	ship.currentEnergy = ship.totalEnergy
-	log.Println("Ship energized", ship.totalEnergy)
 }
 
 // Consume a given amount of energy for another component on the ship
@@ -126,30 +153,3 @@ func (ship *shipT) Tick() {
 }
 
 
-// Single Direction ship
-
-type oneDirShip struct {
-	engine *Engine
-	thruster *Thruster
-	dir mgl64.Vec3
-}
-
-func newOneDirShip(dir mgl64.Vec3) Ship {
-	return &oneDirShip{dir:dir}
-}
-
-
-func (self *oneDirShip) Tick() {
-	self.engine.PowerOn(1.0)
-	self.thruster.Thrust(self.dir, 1.0)
-}
-
-func (self *oneDirShip) GetParts() []Part{
-	self.engine = NewEngine001(mgl64.Vec3{0, 0, 1})
-
-	self.thruster = NewThruster001(mgl64.Vec3{0, -1, 0})
-	return []Part{
-		self.engine,
-		self.thruster,
-	}
-}

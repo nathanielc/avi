@@ -1,0 +1,39 @@
+
+#List of different engines
+engines:
+  coal:
+    mass: 1000
+    radius: 10
+    energy: 100
+  nuclear:
+    mass: 10000
+    radius: 60
+    energy: 10000
+
+#List of thrusters
+thrusters:
+  rocket:
+    mass: 100
+    radius: 5
+    energy: 75
+    force: 100
+  turbo-rocket:
+    mass: 110
+    radius: 5
+    energy: 115
+    force: 200
+
+#List of weapons
+weapons:
+  pea-shooter:
+    mass: 5
+    radius: 0.1
+    energy: 1
+
+#List of sensors
+sensors:
+  antenna:
+    mass: 1
+    radius: 0.05
+    energy: 2
+

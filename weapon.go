@@ -9,6 +9,13 @@ type Weapon struct {
 	energy float64
 }
 
+// Conf format for loading weapons from a file
+type WeaponConf struct {
+	Mass float64
+	Radius float64
+	Energy float64
+}
+
 func NewWeapon001(pos mgl64.Vec3) *Weapon {
 	return &Weapon{
 		partT: partT{
@@ -19,6 +26,19 @@ func NewWeapon001(pos mgl64.Vec3) *Weapon {
 			},
 		},
 		energy: 5,
+	}
+}
+
+func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
+	return &Weapon{
+		partT: partT{
+			objectT: objectT{
+				position: pos,
+				mass:     conf.Mass,
+				radius:   conf.Radius,
+			},
+		},
+		energy: conf.Energy,
 	}
 }
 

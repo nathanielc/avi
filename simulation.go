@@ -2,7 +2,9 @@ package avi
 
 import (
 	"github.com/go-gl/mathgl/mgl64"
-	"log"
+	"github.com/nvcook42/avi/logger"
+	"errors"
+	"fmt"
 )
 
 const minSectorSize = 100
@@ -16,6 +18,10 @@ type Simulation struct {
 	sectors     sectorMap
 	sectorSize  int64
 	collisions  []collision
+	//Number of ships alive from each fleet
+	survivors   map[string]int
+	//Available parts
+	availableParts *PartsConf
 }
 
 type sectorMapZ map[int64][]object
@@ -27,16 +33,54 @@ type collision struct {
 	obj2 object
 }
 
-func NewSimulation(size int64) *Simulation {
-	return &Simulation{
-		size: size,
+func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf) (*Simulation, error) {
+	sim := &Simulation{
+		size: mp.Size,
+		availableParts: parts,
+		survivors: make(map[string]int),
 	}
+
+	for _, fleet := range fleets {
+		
+		center, err := sliceToVec(fleet.Center)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, shipConf := range fleet.Ships {
+
+			ship := getShipByName(shipConf.Name)
+			if ship == nil {
+				return nil, errors.New(fmt.Sprintf("Unknown ship name '%s'", shipConf.Name))
+			}
+
+
+			relativePos, err := sliceToVec(shipConf.Position)
+			if err != nil {
+				return nil, err
+			}
+
+			pos := center.Add(relativePos)
+			err = sim.AddShip(fleet.Name, pos, ship, shipConf.Parts)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return sim, nil
 }
 
-func (sim *Simulation) AddShip(pos mgl64.Vec3, ship Ship) {
-	s := newShip(pos, ship)
-	log.Println("Added new ship", s.GetMass())
+func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, ship Ship, parts []ShipPartConf) error {
+	s, err := newShip(sim, fleet, pos, ship, parts)
+	if err != nil {
+		return err
+	}
+	logger.Debugln("Added new ship", s.GetMass())
 	sim.ships = append(sim.ships, s)
+
+	sim.survivors[fleet]++
+	return nil
 }
 
 func (sim *Simulation) addProjectile(p *projectile) {
@@ -44,14 +88,13 @@ func (sim *Simulation) addProjectile(p *projectile) {
 }
 
 func (sim *Simulation) Start() {
-	log.Println("Starting AVI Simulation")
+	logger.Infoln("Starting AVI Simulation")
 
 	sim.loop()
 }
 
 func (sim *Simulation) loop() {
 	for {
-		log.Println("tick:", sim.tick)
 		sim.doTick()
 	}
 }
@@ -69,7 +112,6 @@ func (sim *Simulation) tickShips() {
 	for _, ship := range sim.ships {
 		ship := ship
 		go func() {
-			log.Println("Ship @", ship.GetPosition())
 			ship.Energize()
 			ship.Tick()
 			complete <- 1
@@ -94,8 +136,6 @@ func (sim *Simulation) propagateObjects() {
 			sim.sectorSize = r
 		}
 	}
-
-	log.Println("Sector size", sim.sectorSize)
 }
 
 func (sim *Simulation) collideObjects() {
@@ -168,7 +208,7 @@ func (sim *Simulation) collideInSector(obj object, x, y, z int64) {
 		distanceApart := obj.GetPosition().Sub(other.GetPosition()).Len()
 		radii := obj.GetRadius() + other.GetRadius()
 		if distanceApart < radii {
-			log.Println("Collision", obj.GetPosition(), other.GetPosition())
+			logger.Debugln("Collision", obj.GetPosition(), other.GetPosition())
 			sim.collisions = append(sim.collisions, collision{
 				obj,
 				other,

@@ -33,3 +33,30 @@ func BenchmarkLoop(b *testing.B) {
 		sim.doTick()
     }
 }
+
+// Single Direction ship
+type oneDirShip struct {
+	engine *Engine
+	thruster *Thruster
+	dir mgl64.Vec3
+}
+
+func newOneDirShip(dir mgl64.Vec3) Ship {
+	return &oneDirShip{dir:dir}
+}
+
+
+func (self *oneDirShip) Tick() {
+	self.engine.PowerOn(1.0)
+	self.thruster.Thrust(self.dir, 1.0)
+}
+
+func (self *oneDirShip) GetParts() []Part{
+	self.engine = NewEngine001(mgl64.Vec3{0, 0, 1})
+
+	self.thruster = NewThruster001(mgl64.Vec3{0, -1, 0})
+	return []Part{
+		self.engine,
+		self.thruster,
+	}
+}
