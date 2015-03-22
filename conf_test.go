@@ -4,9 +4,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/go-gl/mathgl/mgl64"
 	"testing"
+	"github.com/nvcook42/avi/logger"
 )
 
 func TestLoadEngine(t *testing.T) {
+	logger.Init()
 	assert := assert.New(t)
 
 	data := []byte(`---

@@ -1,0 +1,21 @@
+---
+name: ants
+center: [0, 0, 0]
+ships:
+  - name: duck
+    position: [0, 0, 0]
+    parts: *JIM_PARTS
+
+
+
+ship_types:
+  parts: &JIM_PARTS
+    - name: nuclear
+      type: engine
+      position: [10,0,0]
+    - name: pea-shooter
+      type: weapon
+      position: [0,10,0]
+    - name: antenna
+      type: sensor
+      position: [0,0,-10]

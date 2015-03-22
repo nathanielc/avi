@@ -1,17 +1,17 @@
 ---
 name: gophers
-center: [-1000, -1000, -1000]
+center: [-100, -100, -100]
 ships:
   - name: jim
     position: [0, 0, 0]
     parts: *JIM_PARTS
-  - name: jim
-    position: [100, 100, 100]
-    parts: *JIM_PARTS
-  - name: jim
-    position: [200, 200, 200]
-    parts: *JIM_PARTS
-
+#  - name: jim
+#    position: [100, 100, 100]
+#    parts: *JIM_PARTS
+#  - name: jim
+#    position: [200, 200, 200]
+#    parts: *JIM_PARTS
+#
 
 
 ship_types:

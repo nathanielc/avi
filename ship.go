@@ -3,7 +3,6 @@ package avi
 import (
 	"errors"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/nvcook42/avi/logger"
 	"reflect"
 )
 
@@ -66,6 +65,7 @@ func newShip(sim *Simulation, fleet string, pos mgl64.Vec3, ship Ship, parts []S
 	}
 
 	newShip.position = pos
+	newShip.health = 1000
 
 
 	err := newShip.addParts(parts)
@@ -85,7 +85,6 @@ func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 		return err
 	}
 	for _, part := range parts {
-		logger.Debug.Println("Adding part to ship")
 		ship.parts = append(ship.parts, part)
 		part.setShip(ship)
 

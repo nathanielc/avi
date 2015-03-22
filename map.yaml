@@ -1,5 +1,5 @@
 ---
-size: 1e6
+radius: 1e6
 # Currently asteroids are not added to the map
 asteroids:
   - mass: 1e3

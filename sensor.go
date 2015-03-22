@@ -42,3 +42,20 @@ func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 	}
 }
 
+type scanResult struct {
+	Position mgl64.Vec3
+	Health float64
+}
+
+func (self *Sensor) Scan() (scan scanResult, err error) {
+	err = self.ship.ConsumeEnergy(self.energy)
+	if err != nil {
+		return
+	}
+	scan = scanResult{
+		Position: self.ship.position,
+		Health: self.ship.health,
+	}
+
+	return
+}

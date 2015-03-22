@@ -1,33 +1,28 @@
 package avi
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"github.com/go-gl/mathgl/mgl64"
+	"github.com/nvcook42/avi/logger"
 )
 
-func TestSubspaceIndex(t *testing.T) {
-	assert := assert.New(t)
 
-	index := int8(0)
-	for k := 0; k < 3; k++ {
-		for j := 0; j < 3; j++ {
-			for i := 0; i < 3; i++ {
-				subspace := calcSubspaceIndex(int64(i), int64(j), int64(k))
-				assert.Equal(index, subspace)
-
-				index++
-			}
-		}
-	}
-}
 
 func BenchmarkLoop(b *testing.B) {
+	logger.Init()
 	ship0 := newOneDirShip(mgl64.Vec3{-1,-1,-1})
 	ship1 := newOneDirShip(mgl64.Vec3{1,1,1})
-	sim := NewSimulation(100000)
-	sim.AddShip(mgl64.Vec3{100, 100, 100}, ship0)
-	sim.AddShip(mgl64.Vec3{-100, -100, -100}, ship1)
+	sim, err := NewSimulation(&MapConf{
+			Radius: 1000,
+		},
+		nil,
+		nil,
+	)
+	if err != nil {
+		return
+	}
+	sim.AddShip("f1", mgl64.Vec3{100, 100, 100}, ship0, nil)
+	sim.AddShip("f2", mgl64.Vec3{-100, -100, -100}, ship1, nil)
     b.ResetTimer()
     for i := 0; i < b.N; i++ {
 		sim.doTick()
@@ -51,12 +46,12 @@ func (self *oneDirShip) Tick() {
 	self.thruster.Thrust(self.dir, 1.0)
 }
 
-func (self *oneDirShip) GetParts() []Part{
+func (self *oneDirShip) LinkParts(shipParts []ShipPartConf, availableParts *PartsConf) ([]Part, error) {
 	self.engine = NewEngine001(mgl64.Vec3{0, 0, 1})
 
 	self.thruster = NewThruster001(mgl64.Vec3{0, -1, 0})
 	return []Part{
 		self.engine,
 		self.thruster,
-	}
+	}, nil
 }

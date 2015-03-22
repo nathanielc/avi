@@ -13,7 +13,7 @@ type asteroid struct {
 }
 
 type MapConf struct {
-	Size int64
+	Radius int64
 	Asteroids []asteroid
 }
 
