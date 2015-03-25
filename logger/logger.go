@@ -2,15 +2,15 @@ package logger
 
 import (
 	"flag"
-	"log"
-	"os"
 	"io"
 	"io/ioutil"
+	"log"
+	"os"
 )
 
 var level = flag.Int("v", 2, "Verbosity level. One of 0,1,2,3 for ERR, WARN, INF, DBG respectively")
 
-const logFlags = log.Ldate |log.Ltime | log.Lshortfile
+const logFlags = log.Ldate | log.Ltime | log.Lshortfile
 
 const (
 	ERROR = iota
@@ -21,8 +21,8 @@ const (
 
 var (
 	Debug *log.Logger
-	Info *log.Logger
-	Warn *log.Logger
+	Info  *log.Logger
+	Warn  *log.Logger
 	Error *log.Logger
 )
 
@@ -39,4 +39,3 @@ func getWriter(logLevel int) io.Writer {
 	}
 	return ioutil.Discard
 }
-

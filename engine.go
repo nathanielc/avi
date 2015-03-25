@@ -13,7 +13,7 @@ type Engine struct {
 
 // Conf format for loading engines from a file
 type EngineConf struct {
-	Mass float64
+	Mass   float64
 	Radius float64
 	Energy float64
 }
@@ -56,4 +56,3 @@ func (self *Engine) PowerOn(power float64) error {
 	self.currentOutput = self.energy * power
 	return nil
 }
-

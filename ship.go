@@ -21,9 +21,9 @@ type Ship interface {
 
 //Internal representaion of the ship
 type shipT struct {
-	ship          Ship
-	fleet         string
-	sim           *Simulation
+	ship  Ship
+	fleet string
+	sim   *Simulation
 	objectT
 	parts         []Part
 	thrusters     []*Thruster
@@ -32,9 +32,11 @@ type shipT struct {
 	sensors       []*Sensor
 	totalEnergy   float64
 	currentEnergy float64
+	texture       string
 }
 
 type shipFactory func() Ship
+
 var registeredShips = make(map[string]shipFactory)
 
 //Register a ship to make it available
@@ -50,31 +52,30 @@ func getShipByName(name string) Ship {
 	return nil
 }
 
-
-func newShip(sim *Simulation, fleet string, pos mgl64.Vec3, ship Ship, parts []ShipPartConf) (*shipT, error) {
+func newShip(id int64, sim *Simulation, fleet string, pos mgl64.Vec3, ship Ship, conf ShipConf) (*shipT, error) {
 
 	newShip := &shipT{
-		sim: sim,
-		fleet: fleet,
-		ship:    ship,
-		parts: make([]Part, 0),
+		sim:       sim,
+		fleet:     fleet,
+		ship:      ship,
+		parts:     make([]Part, 0),
 		thrusters: make([]*Thruster, 0),
-		engines: make([]*Engine, 0),
-		weapons: make([]*Weapon, 0),
-		sensors: make([]*Sensor, 0),
+		engines:   make([]*Engine, 0),
+		weapons:   make([]*Weapon, 0),
+		sensors:   make([]*Sensor, 0),
+		texture:   conf.Texture,
 	}
 
+	newShip.id = id
 	newShip.position = pos
 	newShip.health = 1000
 
-
-	err := newShip.addParts(parts)
+	err := newShip.addParts(conf.Parts)
 	if err != nil {
 		return nil, err
 	}
 
 	newShip.determineSize()
-
 
 	return newShip, nil
 }
@@ -107,7 +108,6 @@ func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 	}
 	return nil
 }
-
 
 func (ship *shipT) determineSize() {
 
@@ -150,5 +150,3 @@ func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
 func (ship *shipT) Tick() {
 	ship.ship.Tick()
 }
-
-

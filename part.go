@@ -1,11 +1,11 @@
 package avi
 
 import (
+	"errors"
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"
-	"errors"
-	"fmt"
 )
 
 func PartNotAvailable(name string) error {
@@ -13,25 +13,24 @@ func PartNotAvailable(name string) error {
 }
 
 type Part interface {
-	object
+	Object
 	setShip(*shipT)
 }
 
 type partT struct {
 	objectT
-	ship     *shipT
+	ship *shipT
 }
 
 func (part *partT) setShip(ship *shipT) {
 	part.ship = ship
 }
 
-
 type PartsConf struct {
-	Engines map[string]EngineConf
+	Engines   map[string]EngineConf
 	Thrusters map[string]ThrusterConf
-	Weapons map[string]WeaponConf
-	Sensors map[string]SensorConf
+	Weapons   map[string]WeaponConf
+	Sensors   map[string]SensorConf
 }
 
 func LoadPartsFromFile(f io.Reader) (*PartsConf, error) {

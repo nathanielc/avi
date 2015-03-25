@@ -1,10 +1,10 @@
 package avi
 
 import (
-	"github.com/stretchr/testify/assert"
 	"github.com/go-gl/mathgl/mgl64"
-	"testing"
 	"github.com/nvcook42/avi/logger"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestLoadEngine(t *testing.T) {
@@ -23,7 +23,7 @@ engines:
 	coal, ok := conf.Engines["coal"]
 	assert.True(ok)
 	assert.Equal(EngineConf{
-		Mass: 100.15,
+		Mass:   100.15,
 		Radius: 10.0,
 		Energy: 1.0,
 	}, coal)
@@ -33,12 +33,12 @@ func TestNewEngineFromConf(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := EngineConf{
-		Mass: 101,
+		Mass:   101,
 		Radius: 0.1,
 		Energy: 10,
 	}
 
-	pos := mgl64.Vec3{1,4,-5}
+	pos := mgl64.Vec3{1, 4, -5}
 
 	engine := NewEngineFromConf(pos, conf)
 
@@ -66,7 +66,7 @@ sensors:
 	antenna, ok := conf.Sensors["antenna"]
 	assert.True(ok)
 	assert.Equal(SensorConf{
-		Mass: 100.15,
+		Mass:   100.15,
 		Radius: 10.0,
 		Energy: 1.0,
 	}, antenna)
@@ -76,12 +76,12 @@ func TestNewSensorFromConf(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := SensorConf{
-		Mass: 101,
+		Mass:   101,
 		Radius: 0.1,
 		Energy: 10,
 	}
 
-	pos := mgl64.Vec3{1,4,-5}
+	pos := mgl64.Vec3{1, 4, -5}
 
 	sensor := NewSensorFromConf(pos, conf)
 
@@ -110,9 +110,9 @@ thrusters:
 	rocket, ok := conf.Thrusters["rocket"]
 	assert.True(ok)
 	assert.Equal(ThrusterConf{
-		Mass: 1000,
+		Mass:   1000,
 		Radius: 15.0,
-		Force: 3000.0,
+		Force:  3000.0,
 		Energy: 2000,
 	}, rocket)
 }
@@ -121,13 +121,13 @@ func TestNewThrusterFromConf(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := ThrusterConf{
-		Mass: 1001,
+		Mass:   1001,
 		Radius: 12,
-		Force: 1500,
+		Force:  1500,
 		Energy: 150,
 	}
 
-	pos := mgl64.Vec3{1,4,-5}
+	pos := mgl64.Vec3{1, 4, -5}
 
 	Thruster := NewThrusterFromConf(pos, conf)
 
@@ -156,7 +156,7 @@ weapons:
 	railgun, ok := conf.Weapons["railgun"]
 	assert.True(ok)
 	assert.Equal(WeaponConf{
-		Mass: 100.15,
+		Mass:   100.15,
 		Radius: 10.0,
 		Energy: 1.0,
 	}, railgun)
@@ -166,12 +166,12 @@ func TestNewWeaponFromConf(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := WeaponConf{
-		Mass: 101,
+		Mass:   101,
 		Radius: 0.1,
 		Energy: 10,
 	}
 
-	pos := mgl64.Vec3{1,4,-5}
+	pos := mgl64.Vec3{1, 4, -5}
 
 	weapon := NewWeaponFromConf(pos, conf)
 

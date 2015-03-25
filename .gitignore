@@ -25,3 +25,8 @@ _testmain.go
 
 # IDEs
 .*.swp
+
+# Proto
+head/head.pb.go
+head/head_pb2.py
+

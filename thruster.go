@@ -12,9 +12,9 @@ type Thruster struct {
 
 // Conf format for loading thrusters from a file
 type ThrusterConf struct {
-	Mass float64
+	Mass   float64
 	Radius float64
-	Force float64
+	Force  float64
 	Energy float64
 }
 

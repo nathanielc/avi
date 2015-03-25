@@ -7,16 +7,15 @@ import (
 )
 
 type asteroid struct {
-	Mass float64
-	Radius float64
+	Mass     float64
+	Radius   float64
 	Position []float64
 }
 
 type MapConf struct {
-	Radius int64
+	Radius    int64
 	Asteroids []asteroid
 }
-
 
 func LoadMapFromFile(f io.Reader) (*MapConf, error) {
 	data, err := ioutil.ReadAll(f)

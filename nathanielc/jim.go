@@ -12,14 +12,13 @@ func init() {
 
 type JimSpaceShip struct {
 	avi.GenericShip
-	dir mgl64.Vec3
+	dir   mgl64.Vec3
 	fired bool
 }
 
 func NewJim() avi.Ship {
-	return &JimSpaceShip{dir:mgl64.Vec3{1,1,1}}
+	return &JimSpaceShip{dir: mgl64.Vec3{1, 1, 1}}
 }
-
 
 func (self *JimSpaceShip) Tick() {
 	for _, engine := range self.Engines {
@@ -40,7 +39,7 @@ func (self *JimSpaceShip) Tick() {
 		return
 	}
 	logger.Debug.Println("Jim health", scan.Health)
-	if !self.fired || true{
+	if !self.fired || true {
 		self.fired = true
 		for _, weapon := range self.Weapons {
 			err := weapon.Fire(scan.Position.Mul(-1))
@@ -52,4 +51,3 @@ func (self *JimSpaceShip) Tick() {
 		}
 	}
 }
-

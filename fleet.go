@@ -7,23 +7,23 @@ import (
 )
 
 type ShipPartConf struct {
-	Name string
+	Name     string
 	Position []float64
-	Type string
+	Type     string
 }
 
 type ShipConf struct {
-	Name string
+	Name     string
+	Texture  string
 	Position []float64
-	Parts []ShipPartConf
+	Parts    []ShipPartConf
 }
 
 type FleetConf struct {
-	Name string
+	Name   string
 	Center []float64
 	Ships  []ShipConf
 }
-
 
 func LoadFleetFromFile(f io.Reader) (*FleetConf, error) {
 	data, err := ioutil.ReadAll(f)

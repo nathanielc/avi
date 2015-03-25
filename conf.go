@@ -1,9 +1,9 @@
 package avi
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-gl/mathgl/mgl64"
-	"errors"
 )
 
 func sliceToVec(pos []float64) (mgl64.Vec3, error) {

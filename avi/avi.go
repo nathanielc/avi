@@ -56,7 +56,11 @@ func main() {
 		fleets = append(fleets, fleet)
 	}
 
-	sim, err := avi.NewSimulation(mp, parts, fleets)
+	f, _ := os.Create("stream.txt")
+	defer f.Close()
+	stream := avi.NewStream(f)
+
+	sim, err := avi.NewSimulation(mp, parts, fleets, stream)
 	if err != nil {
 		logger.Error.Fatal(err)
 	}

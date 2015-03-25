@@ -11,7 +11,7 @@ type Sensor struct {
 
 // Conf format for loading engines from a file
 type SensorConf struct {
-	Mass float64
+	Mass   float64
 	Radius float64
 	Energy float64
 }
@@ -44,7 +44,7 @@ func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 
 type scanResult struct {
 	Position mgl64.Vec3
-	Health float64
+	Health   float64
 }
 
 func (self *Sensor) Scan() (scan scanResult, err error) {
@@ -54,7 +54,7 @@ func (self *Sensor) Scan() (scan scanResult, err error) {
 	}
 	scan = scanResult{
 		Position: self.ship.position,
-		Health: self.ship.health,
+		Health:   self.ship.health,
 	}
 
 	return

@@ -1,0 +1,27 @@
+package head;
+
+enum Texture {
+    SHIP = 0;
+    PROJECTILE = 1;
+}
+
+message Vector {
+    required float x = 1;
+    required float y = 2;
+    required float z = 3;
+}
+
+message Object {
+    required int64 ID = 1;
+    required Vector pos = 2;
+    required Texture tex = 3;
+    optional string tex_custom = 4;
+}
+
+message Frame {
+    repeated Object object = 1;
+}
+
+message Stream {
+    repeated Frame frame = 2;
+}

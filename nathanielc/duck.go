@@ -1,4 +1,3 @@
-
 package nathanielc
 
 import (
@@ -18,7 +17,6 @@ func NewDuck() avi.Ship {
 	return &DuckSpaceShip{}
 }
 
-
 func (self *DuckSpaceShip) Tick() {
 
 	for _, engine := range self.Engines {
@@ -35,4 +33,3 @@ func (self *DuckSpaceShip) Tick() {
 
 	logger.Debug.Println("Duck health", scan.Health)
 }
-

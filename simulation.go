@@ -14,6 +14,7 @@ const timePerTick = 1e-3
 const impulseToDamage = 1.0
 
 var maxTicks = flag.Int("ticks", -1, "Optional maximum ticks to simulate")
+var streamRate = flag.Int("rate", 10, "Every 'rate' ticks emit a frame")
 
 type Simulation struct {
 	ships      []*shipT
@@ -25,15 +26,20 @@ type Simulation struct {
 	survivors map[string]int
 	//Available parts
 	availableParts *PartsConf
+	//ID counter
+	idCounter int64
+	stream    *Stream
+	rate      int64
 }
 
-func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf) (*Simulation, error) {
+func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *Stream) (*Simulation, error) {
 	sim := &Simulation{
 		radius:         mp.Radius,
 		availableParts: parts,
 		survivors:      make(map[string]int),
+		rate:           int64(*streamRate),
+		stream:         stream,
 	}
-
 	for _, fleet := range fleets {
 
 		center, err := sliceToVec(fleet.Center)
@@ -55,7 +61,7 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf) (*Simulat
 			}
 
 			pos := center.Add(relativePos)
-			err = sim.AddShip(fleet.Name, pos, ship, shipConf.Parts)
+			err = sim.AddShip(fleet.Name, pos, ship, shipConf)
 			if err != nil {
 				return nil, err
 			}
@@ -64,8 +70,15 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf) (*Simulat
 
 	return sim, nil
 }
-func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, ship Ship, parts []ShipPartConf) error {
-	s, err := newShip(sim, fleet, pos, ship, parts)
+
+func (sim *Simulation) getNextID() int64 {
+	id := sim.idCounter
+	sim.idCounter++
+	return id
+}
+
+func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, ship Ship, conf ShipConf) error {
+	s, err := newShip(sim.getNextID(), sim, fleet, pos, ship, conf)
 	if err != nil {
 		return err
 	}
@@ -85,6 +98,7 @@ func (sim *Simulation) removeShip(i int) {
 func (sim *Simulation) addProjectile(pos, vel mgl64.Vec3, mass, radius float64) {
 	p := &projectile{
 		objectT{
+			id:       sim.getNextID(),
 			position: pos,
 			velocity: vel,
 			mass:     mass,
@@ -106,9 +120,12 @@ func (sim *Simulation) loop() string {
 	var fleet string
 	cont := true
 	maxTicks := int64(*maxTicks)
-	for cont && !(maxTicks > 0 && maxTicks < sim.tick) {
+	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) {
 		fleet, cont = sim.doTick()
 		//logger.Debug.Println(sim.tick)
+		if sim.stream != nil && sim.tick%sim.rate == 0 {
+			sim.stream.SendFrame(sim.ships, sim.projs)
+		}
 	}
 	return fleet
 }
@@ -158,7 +175,7 @@ func (sim *Simulation) propagateObjects() {
 			ship.GetVelocity(),
 			ship.GetRadius(),
 		)
-		ship.Move()
+		ship.position = ship.position.Add(ship.velocity.Mul(timePerTick))
 		if r := int64(ship.GetRadius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
@@ -169,9 +186,9 @@ func (sim *Simulation) propagateObjects() {
 			sim.projs[0].GetVelocity(),
 		)
 	}
-	for _, p := range sim.projs {
-		p.Move()
-		if r := int64(p.GetRadius() * 2); r > sim.sectorSize {
+	for _, proj := range sim.projs {
+		proj.position = proj.position.Add(proj.velocity.Mul(timePerTick))
+		if r := int64(proj.GetRadius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
 	}
@@ -180,8 +197,8 @@ func (sim *Simulation) propagateObjects() {
 }
 
 func (sim *Simulation) collideObjects() {
-	shipSectors := make(map[int64][]object)
-	projSectors := make(map[int64][]object)
+	shipSectors := make(map[int64][]Object)
+	projSectors := make(map[int64][]Object)
 	logger.Debug.Println("#ships", len(sim.ships))
 	logger.Debug.Println("#projs", len(sim.projs))
 	for i := 0; i < len(sim.ships); {
@@ -254,7 +271,7 @@ func (sim *Simulation) collideObjects() {
 	}
 }
 
-func (sim *Simulation) placeInSectors(obj object, sectors map[int64][]object) {
+func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
 	pos := obj.GetPosition()
 	radius := obj.GetRadius()
 
@@ -283,7 +300,7 @@ func (sim *Simulation) placeInSectors(obj object, sectors map[int64][]object) {
 	logger.Debug.Println("Placed in sectors:", sectorsList)
 }
 
-func collide(obj1, obj2 object) bool {
+func collide(obj1, obj2 Object) bool {
 	distanceApart := obj1.GetPosition().Sub(obj2.GetPosition()).Len()
 	radii := obj1.GetRadius() + obj2.GetRadius()
 	if distanceApart < radii {
@@ -295,7 +312,7 @@ func collide(obj1, obj2 object) bool {
 
 // Get the collision plane between to spheres
 // This is also the translation distance between the spheres
-func collisionPlane(obj1, obj2 object) (mgl64.Vec3, mgl64.Vec3) {
+func collisionPlane(obj1, obj2 Object) (mgl64.Vec3, mgl64.Vec3) {
 	delta := obj1.GetPosition().Sub(obj2.GetPosition())
 	distanceApart := delta.Len()
 	radii := obj1.GetRadius() + obj2.GetRadius()
@@ -321,7 +338,7 @@ func (sim *Simulation) doProjShipCollision(proj *projectile, ship *shipT) {
 
 }
 
-func resolveIntersection(obj1, obj2 object, mtd mgl64.Vec3) {
+func resolveIntersection(obj1, obj2 Object, mtd mgl64.Vec3) {
 	// inverse mass
 	im1 := 1.0 / obj1.GetMass()
 	im2 := 1.0 / obj2.GetMass()
@@ -333,7 +350,7 @@ func resolveIntersection(obj1, obj2 object, mtd mgl64.Vec3) {
 	obj2.setPosition(pos2.Sub(mtd.Mul(im2 / (im1 + im2))))
 }
 
-func resolveCollision(obj1, obj2 object, normal mgl64.Vec3, cor float64) {
+func resolveCollision(obj1, obj2 Object, normal mgl64.Vec3, cor float64) {
 
 	// inverse mass
 	im1 := 1.0 / obj1.GetMass()
