@@ -11,7 +11,7 @@ import (
 const minSectorSize = 100
 const timePerTick = 1e-2
 
-const impulseToDamage = 1.0
+const impulseToDamage = 0.001
 
 var maxTicks = flag.Int("ticks", -1, "Optional maximum ticks to simulate")
 var streamRate = flag.Int("rate", 10, "Every 'rate' ticks emit a frame")

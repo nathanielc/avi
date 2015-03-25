@@ -4,37 +4,37 @@ center: [0, 0, 0]
 ships:
   - name: duck
     position: [0, 0, 0]
-    parts: *JIM_PARTS
+    parts: *DUCK_PARTS
     texture: vegetables
   - name: duck
     position: [-100, 100, -100]
-    parts: *JIM_PARTS
+    parts: *DUCK_PARTS
     texture: vegetables
   - name: duck
     position: [-100, 100, 0]
-    parts: *JIM_PARTS
+    parts: *DUCK_PARTS
     texture: vegetables
   - name: duck
     position: [-100, 100, 100]
-    parts: *JIM_PARTS
+    parts: *DUCK_PARTS
     texture: vegetables
   - name: duck
     position: [-100, 0, 100]
-    parts: *JIM_PARTS
+    parts: *DUCK_PARTS
     texture: vegetables
   - name: duck
     position: [-100, -100, 100]
-    parts: *JIM_PARTS
+    parts: *DUCK_PARTS
     texture: vegetables
   - name: duck
     position: [-100, -100, 0]
-    parts: *JIM_PARTS
+    parts: *DUCK_PARTS
     texture: vegetables
 
 
 
 ship_types:
-  parts: &JIM_PARTS
+  duck_parts: &DUCK_PARTS
     - name: nuclear
       type: engine
       position: [1,0,0]

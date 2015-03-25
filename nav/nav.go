@@ -46,8 +46,8 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 	t2 := t * t
 
 	if distance < t {
-		nav.next = nil
 		glog.V(2).Infoln("Hit waypoint", nav.next, distance, t)
+		nav.next = nil
 		return nil
 	}
 
@@ -57,6 +57,9 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 	realAngle := math.Acos(pos.Dot(delta) / (distance * pos.Len()))
 
 	if realAngle > toleranceAngle {
+		if speed > nav.next.MaxSpeed {
+			nav.thrust(vel.Mul(-1))
+		}
 		nav.thrust(delta)
 	} else if speed < nav.next.MaxSpeed {
 		nav.thrust(delta)

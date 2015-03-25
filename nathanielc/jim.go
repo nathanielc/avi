@@ -15,37 +15,37 @@ var pattern = []*nav.Waypoint{
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 100, -100},
-		MaxSpeed:  1,
+		MaxSpeed:  10,
 		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 100, 0},
-		MaxSpeed:  1,
+		MaxSpeed:  10,
 		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 100, 100},
-		MaxSpeed:  1,
+		MaxSpeed:  10,
 		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 0, 100},
-		MaxSpeed:  1,
+		MaxSpeed:  10,
 		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, -100, 100},
-		MaxSpeed:  1,
+		MaxSpeed:  10,
 		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, -100, 0},
-		MaxSpeed:  1,
+		MaxSpeed:  10,
 		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, -100, -100},
-		MaxSpeed:  1,
+		MaxSpeed:  10,
 		Tolerance: 30,
 	},
 	&nav.Waypoint{

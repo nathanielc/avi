@@ -1,17 +1,5 @@
 #!/usr/bin/env python
 
-# Author: Shao Zhang and Phil Saltzman
-# Last Updated: 2015-03-13
-#
-# This tutorial is intended as a initial panda scripting lesson going over
-# display initialization, loading models, placing objects, and the scene graph.
-#
-# Step 4: In this step, we will load the rest of the planets up to Mars.
-# In addition to loading them, we will organize how the planets are grouped
-# hierarchically in the scene. This will help us rotate them in the next step
-# to give a rough simulation of the solar system.  You can see them move by
-# running step_5_complete_solar_system.py.
-
 from direct.showbase.ShowBase import ShowBase
 base = ShowBase()
 
@@ -51,7 +39,7 @@ class World(object):
 
     def loop(self):
         count = 0
-        rate = 5
+        rate = 2
         while True:
             if count % rate == 0:
                 self.updateEvents()
@@ -101,9 +89,6 @@ class World(object):
         for obj in toRemove:
             del self.objs[obj]
 
-
-
-
     def loadMap(self):
         # These are the same steps used to load the sky model that we used in the
         # last step
@@ -118,18 +103,5 @@ class World(object):
         # Scale the size of the sky.
         self.sky.setScale(1000)
 
-        # These are the same steps we used to load the sun in the last step.
-        # Again, we use loader.loadModel since we're using planet_sphere more
-        # than once.
-        #self.sun = loader.loadModel("models/planet_sphere")
-        #self.sun_tex = loader.loadTexture("models/sun_1k_tex.jpg")
-        #self.sun.setTexture(self.sun_tex, 1)
-        #self.sun.reparentTo(render)
-        #self.sun.setScale(3 * self.sizescale)
-
-
-
-
 # end class world
-
 w = World(sys.argv[1])
