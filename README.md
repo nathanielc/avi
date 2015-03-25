@@ -9,6 +9,7 @@ $ go get github.com/nvcook42/avi
 How to run a simulation
 ```sh
 $ cd $GOPATH/src/github.com/nvcook42/avi/
+$ make build
 $ go run avi/avi.go  -logtostderr -ticks 50000 nathanielc/*.yaml
 ```
 How to view the simulation
