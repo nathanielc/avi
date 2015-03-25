@@ -1,10 +1,10 @@
 package main
 
 import (
-	"flag"
 	"compress/gzip"
+	"flag"
+	"github.com/golang/glog"
 	"github.com/nvcook42/avi"
-	"github.com/nvcook42/avi/logger"
 	_ "github.com/nvcook42/avi/ships"
 	"os"
 	"runtime"
@@ -18,14 +18,12 @@ func main() {
 
 	flag.Parse()
 
-	logger.Init()
-
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Load parts
 	pf, err := os.Open(*partsFile)
 	if err != nil {
-		logger.Error.Fatal(err)
+		glog.Fatal(err)
 	}
 	defer pf.Close()
 	parts, err := avi.LoadPartsFromFile(pf)
@@ -33,12 +31,12 @@ func main() {
 	// Load map
 	mf, err := os.Open(*mapFile)
 	if err != nil {
-		logger.Error.Fatal(err)
+		glog.Fatal(err)
 	}
 	defer mf.Close()
 	mp, err := avi.LoadMapFromFile(mf)
 	if err != nil {
-		logger.Error.Fatal(err)
+		glog.Fatal(err)
 	}
 
 	// Load fleets
@@ -47,12 +45,12 @@ func main() {
 	for _, fleetFile := range fleetFiles {
 		ff, err := os.Open(fleetFile)
 		if err != nil {
-			logger.Error.Fatal(err)
+			glog.Fatal(err)
 		}
 		defer ff.Close()
 		fleet, err := avi.LoadFleetFromFile(ff)
 		if err != nil {
-			logger.Error.Fatal(err)
+			glog.Fatal(err)
 		}
 
 		fleets = append(fleets, fleet)
@@ -66,7 +64,7 @@ func main() {
 
 	sim, err := avi.NewSimulation(mp, parts, fleets, stream)
 	if err != nil {
-		logger.Error.Fatal(err)
+		glog.Fatal(err)
 	}
 	sim.Start()
 }

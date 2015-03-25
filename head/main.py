@@ -80,7 +80,6 @@ class World(object):
                     model.setScale(obj.radius)
                     tex = loader.loadTexture("models/%s.jpg" % obj.tex_custom)
                 else:
-                    print obj.radius
                     tex = loader.loadTexture("models/steel.jpg")
                     model.setScale(obj.radius)
                 model.setTexture(tex, 1)

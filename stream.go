@@ -1,9 +1,9 @@
 package avi
 
 import (
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/nvcook42/avi/head"
-	"github.com/nvcook42/avi/logger"
 	"io"
 )
 
@@ -36,7 +36,7 @@ func (s *Stream) SendFrame(ships []*shipT, projs []*projectile) {
 
 	data, err := proto.Marshal(strm)
 	if err != nil {
-		logger.Error.Println(err)
+		glog.Errorln(err)
 		return
 	}
 	s.out.Write(data)
@@ -56,10 +56,10 @@ func appendObject(frame *head.Frame, obj Object, tex head.Texture, customTexture
 	r := float32(obj.GetRadius())
 
 	object := &head.Object{
-		ID:  proto.Int64(obj.GetID()),
-		Pos: pos,
+		ID:     proto.Int64(obj.GetID()),
+		Pos:    pos,
 		Radius: &r,
-		Tex: &tex,
+		Tex:    &tex,
 	}
 
 	if len(customTexture) > 0 {

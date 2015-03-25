@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/nvcook42/avi/logger"
+	"github.com/golang/glog"
 )
 
 const minSectorSize = 100
@@ -49,7 +49,7 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 
 		for _, shipConf := range fleet.Ships {
 
-			logger.Info.Printf("Adding ship %s for fleet %s", shipConf.Name, fleet.Name)
+			glog.Infof("Adding ship %s for fleet %s", shipConf.Name, fleet.Name)
 			ship := getShipByName(shipConf.Name)
 			if ship == nil {
 				return nil, errors.New(fmt.Sprintf("Unknown ship name '%s'", shipConf.Name))
@@ -109,11 +109,11 @@ func (sim *Simulation) addProjectile(pos, vel mgl64.Vec3, mass, radius float64) 
 }
 
 func (sim *Simulation) Start() {
-	logger.Info.Println("Starting AVI Simulation")
+	glog.Infoln("Starting AVI Simulation")
 
 	fleet := sim.loop()
 
-	logger.Info.Printf("%s are the only survivors @ tick: %d!!!", fleet, sim.tick)
+	glog.Infof("%s are the only survivors @ tick: %d!!!", fleet, sim.tick)
 }
 
 func (sim *Simulation) loop() string {
@@ -122,7 +122,7 @@ func (sim *Simulation) loop() string {
 	maxTicks := int64(*maxTicks)
 	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) {
 		fleet, cont = sim.doTick()
-		//logger.Debug.Println(sim.tick)
+		//glog.V(3).Infoln(sim.tick)
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
 			sim.stream.SendFrame(sim.ships, sim.projs)
 		}
@@ -170,7 +170,7 @@ func (sim *Simulation) tickShips() {
 func (sim *Simulation) propagateObjects() {
 	sim.sectorSize = minSectorSize
 	for _, ship := range sim.ships {
-		logger.Debug.Println("S: ",
+		glog.V(3).Infoln("S: ",
 			ship.GetPosition(),
 			ship.GetVelocity(),
 			ship.GetRadius(),
@@ -181,7 +181,7 @@ func (sim *Simulation) propagateObjects() {
 		}
 	}
 	if len(sim.projs) > 0 {
-		logger.Debug.Println("P: ",
+		glog.V(3).Infoln("P: ",
 			sim.projs[0].GetPosition(),
 			sim.projs[0].GetVelocity(),
 		)
@@ -193,21 +193,21 @@ func (sim *Simulation) propagateObjects() {
 		}
 	}
 
-	logger.Debug.Println("Sector size", sim.sectorSize)
+	glog.V(3).Infoln("Sector size", sim.sectorSize)
 }
 
 func (sim *Simulation) collideObjects() {
 	shipSectors := make(map[int64][]Object)
 	projSectors := make(map[int64][]Object)
-	logger.Debug.Println("#ships", len(sim.ships))
-	logger.Debug.Println("#projs", len(sim.projs))
+	glog.V(3).Infoln("#ships", len(sim.ships))
+	glog.V(3).Infoln("#projs", len(sim.projs))
 	for i := 0; i < len(sim.ships); {
 		ship := sim.ships[i]
 		if ship.GetHealth() <= 0 {
 			sim.removeShip(i)
 			continue
 		}
-		logger.Debug.Println(i, ship)
+		glog.V(3).Infoln(i, ship)
 		sim.placeInSectors(ship, shipSectors)
 		i++
 	}
@@ -220,8 +220,8 @@ func (sim *Simulation) collideObjects() {
 		sim.placeInSectors(proj, projSectors)
 		i++
 	}
-	logger.Debug.Println(shipSectors)
-	logger.Debug.Println(projSectors)
+	glog.V(3).Infoln(shipSectors)
+	glog.V(3).Infoln(projSectors)
 
 	// Group collisions
 	shipShip := make(map[*shipT]*shipT)
@@ -234,7 +234,7 @@ func (sim *Simulation) collideObjects() {
 			for j := i + 1; j < l; j++ {
 				ship2 := sector[j].(*shipT)
 				if collide(ship1, ship2) {
-					logger.Debug.Println("SS")
+					glog.V(3).Infoln("SS")
 					shipShip[ship1] = ship2
 				}
 			}
@@ -255,7 +255,7 @@ func (sim *Simulation) collideObjects() {
 			for j := 0; j < numProj; j++ {
 				proj := projs[j].(*projectile)
 				if collide(proj, ship) {
-					logger.Debug.Println("PS")
+					glog.V(3).Infoln("PS")
 					projShip[proj] = ship
 				}
 			}
@@ -277,7 +277,7 @@ func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
 
 	numSectors := sim.radius * 2 / sim.sectorSize
 	numSectors2 := numSectors * numSectors
-	logger.Debug.Println("#S:", numSectors)
+	glog.V(3).Infoln("#S:", numSectors)
 
 	sectorsList := make(map[int64]bool)
 	for i := -1; i <= 1; i++ {
@@ -297,14 +297,14 @@ func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
 		}
 	}
 
-	logger.Debug.Println("Placed in sectors:", sectorsList)
+	glog.V(3).Infoln("Placed in sectors:", sectorsList)
 }
 
 func collide(obj1, obj2 Object) bool {
 	distanceApart := obj1.GetPosition().Sub(obj2.GetPosition()).Len()
 	radii := obj1.GetRadius() + obj2.GetRadius()
 	if distanceApart < radii {
-		logger.Debug.Println("Collision", obj1.GetPosition(), obj2.GetPosition())
+		glog.V(3).Infoln("Collision", obj1.GetPosition(), obj2.GetPosition())
 		return true
 	}
 	return false
@@ -330,7 +330,7 @@ func (sim *Simulation) doShipShipCollision(ship1, ship2 *shipT) {
 
 func (sim *Simulation) doProjShipCollision(proj *projectile, ship *shipT) {
 
-	logger.Debug.Println("doPSC")
+	glog.V(3).Infoln("doPSC")
 	const cor = 0.1
 	mtd, normal := collisionPlane(ship, proj)
 	resolveIntersection(proj, ship, mtd)
@@ -364,7 +364,7 @@ func resolveCollision(obj1, obj2 Object, normal mgl64.Vec3, cor float64) {
 	vn := v.Dot(normal)
 
 	if vn > 0 {
-		logger.Debug.Println("sphere intersecting but moving away from each other already")
+		glog.V(3).Infoln("sphere intersecting but moving away from each other already")
 		return
 	}
 
@@ -374,7 +374,7 @@ func resolveCollision(obj1, obj2 Object, normal mgl64.Vec3, cor float64) {
 
 	damage := impulseToDamage * (ti - i)
 
-	logger.Debug.Println("Damage:", v1, v2, v, ti, i, damage)
+	glog.V(3).Infoln("Damage:", v1, v2, v, ti, i, damage)
 
 	obj1.setHealth(obj1.GetHealth() - damage)
 	obj2.setHealth(obj2.GetHealth() - damage)

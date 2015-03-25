@@ -2,12 +2,10 @@ package avi
 
 import (
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/nvcook42/avi/logger"
 	"testing"
 )
 
 func BenchmarkLoop(b *testing.B) {
-	logger.Init()
 	ship0 := newOneDirShip(mgl64.Vec3{-1, -1, -1})
 	ship1 := newOneDirShip(mgl64.Vec3{1, 1, 1})
 	sim, err := NewSimulation(&MapConf{

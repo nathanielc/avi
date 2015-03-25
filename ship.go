@@ -21,10 +21,10 @@ type Ship interface {
 
 //Internal representaion of the ship
 type shipT struct {
-	ship  Ship
-	fleet string
-	sim   *Simulation
-	texture       string
+	ship    Ship
+	fleet   string
+	sim     *Simulation
+	texture string
 	objectT
 	parts         []Part
 	thrusters     []*Thruster

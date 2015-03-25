@@ -44,6 +44,7 @@ func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 
 type scanResult struct {
 	Position mgl64.Vec3
+	Velocity mgl64.Vec3
 	Health   float64
 }
 
@@ -54,6 +55,7 @@ func (self *Sensor) Scan() (scan scanResult, err error) {
 	}
 	scan = scanResult{
 		Position: self.ship.position,
+		Velocity: self.ship.velocity,
 		Health:   self.ship.health,
 	}
 

@@ -1,8 +1,8 @@
 package nathanielc
 
 import (
+	"github.com/golang/glog"
 	"github.com/nvcook42/avi"
-	"github.com/nvcook42/avi/logger"
 )
 
 func init() {
@@ -22,14 +22,14 @@ func (self *DuckSpaceShip) Tick() {
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)
 		if err != nil {
-			logger.Debug.Println("Failed to power engines", err)
+			glog.V(3).Infoln("Failed to power engines", err)
 		}
 	}
 	scan, err := self.Sensors[0].Scan()
 	if err != nil {
-		logger.Debug.Println("Failed to scan", err)
+		glog.V(3).Infoln("Failed to scan", err)
 		return
 	}
 
-	logger.Debug.Println("Duck health", scan.Health)
+	glog.V(3).Infoln("Duck health", scan.Health)
 }

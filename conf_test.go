@@ -2,13 +2,11 @@ package avi
 
 import (
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/nvcook42/avi/logger"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestLoadEngine(t *testing.T) {
-	logger.Init()
 	assert := assert.New(t)
 
 	data := []byte(`---

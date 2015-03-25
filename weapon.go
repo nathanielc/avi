@@ -2,7 +2,6 @@ package avi
 
 import (
 	"github.com/go-gl/mathgl/mgl64"
-	"github.com/nvcook42/avi/logger"
 )
 
 const ammoRadius = 0.05
@@ -41,7 +40,6 @@ func NewWeapon001(pos mgl64.Vec3) *Weapon {
 }
 
 func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
-	logger.Debug.Println(conf)
 	return &Weapon{
 		partT: partT{
 			objectT: objectT{
