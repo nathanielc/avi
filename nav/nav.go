@@ -35,8 +35,11 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 		nav.next = nav.waypoints.Pop()
 	}
 
+	glog.V(3).Infoln("Next", nav.next)
+
 	speed := vel.Len()
-	delta := pos.Sub(nav.next.Position)
+	//delta := pos.Sub(nav.next.Position)
+	delta := nav.next.Position.Sub(pos)
 	distance := delta.Len()
 
 	t := nav.next.Tolerance
@@ -44,7 +47,7 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 
 	if distance < t {
 		nav.next = nil
-		glog.V(3).Infoln("Hit waypoint", distance, t)
+		glog.V(2).Infoln("Hit waypoint", nav.next, distance, t)
 		return nil
 	}
 
@@ -63,6 +66,7 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 }
 
 func (nav *Nav) thrust(dir mgl64.Vec3) error {
+	glog.V(3).Infoln("Thrusting", dir.Normalize())
 	for _, thruster := range nav.thrusters {
 		err := thruster.Thrust(dir, 1.0)
 		if err != nil {

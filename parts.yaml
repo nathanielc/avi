@@ -16,7 +16,7 @@ thrusters:
     mass: 100
     radius: 5
     energy: 75
-    force: 100
+    force: 100000
   turbo-rocket:
     mass: 110
     radius: 5
@@ -31,6 +31,7 @@ weapons:
     energy: 1
     ammo_mass: 1
     ammo_velocity: 10
+    cooldown: 2
 
 #List of sensors
 sensors:

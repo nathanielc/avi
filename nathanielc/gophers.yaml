@@ -6,13 +6,10 @@ ships:
     position: [0, 0, 0]
     parts: *JIM_PARTS
     texture: cookie_monster
-#  - name: jim
-#    position: [100, 100, 100]
-#    parts: *JIM_PARTS
-#  - name: jim
-#    position: [200, 200, 200]
-#    parts: *JIM_PARTS
-#
+  - name: jim
+    position: [-100, -100, -100]
+    parts: *JIM_PARTS
+    texture: cookie_monster
 
 
 ship_types:

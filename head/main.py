@@ -36,7 +36,7 @@ class World(object):
 
         base.setBackgroundColor(0, 0, 0)  # Set the background to black
         #base.disableMouse()  # disable mouse control of the camera
-        camera.setPos(0, 0, 45)  # Set the camera position (X, Y, Z)
+        camera.setPos(150, 0, 0)  # Set the camera position (X, Y, Z)
         camera.setHpr(0, -90, 0)  # Set the camera orientation
         #(heading, pitch, roll) in degrees
 
@@ -81,7 +81,7 @@ class World(object):
                     tex = loader.loadTexture("models/%s.jpg" % obj.tex_custom)
                 else:
                     tex = loader.loadTexture("models/steel.jpg")
-                    model.setScale(obj.radius)
+                    model.setScale(obj.radius*10)
                 model.setTexture(tex, 1)
                 model.reparentTo(render)
                 self.objs[name] = model

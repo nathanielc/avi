@@ -1,6 +1,7 @@
 package avi
 
 import (
+	"errors"
 	"github.com/go-gl/mathgl/mgl64"
 )
 
@@ -8,10 +9,12 @@ const ammoRadius = 0.05
 
 type Weapon struct {
 	partT
-	energy       float64
-	ammoVelocity float64
-	ammoMass     float64
-	ammoRadius   float64
+	energy        float64
+	ammoVelocity  float64
+	ammoMass      float64
+	ammoRadius    float64
+	cooldownTicks int64
+	lastshot      int64
 }
 
 // Conf format for loading weapons from a file
@@ -21,6 +24,7 @@ type WeaponConf struct {
 	Energy       float64
 	AmmoVelocity float64 `yaml:"ammo_velocity"`
 	AmmoMass     float64 `yaml:"ammo_mass"`
+	Cooldown     float64
 }
 
 func NewWeapon001(pos mgl64.Vec3) *Weapon {
@@ -32,10 +36,11 @@ func NewWeapon001(pos mgl64.Vec3) *Weapon {
 				radius:   1,
 			},
 		},
-		energy:       5,
-		ammoVelocity: 1000,
-		ammoMass:     1,
-		ammoRadius:   ammoRadius,
+		energy:        5,
+		ammoVelocity:  1000,
+		ammoMass:      1,
+		ammoRadius:    ammoRadius,
+		cooldownTicks: int64(5.0 / timePerTick),
 	}
 }
 
@@ -48,14 +53,20 @@ func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 				radius:   conf.Radius,
 			},
 		},
-		energy:       conf.Energy,
-		ammoVelocity: conf.AmmoVelocity,
-		ammoMass:     conf.AmmoMass,
-		ammoRadius:   ammoRadius,
+		energy:        conf.Energy,
+		ammoVelocity:  conf.AmmoVelocity,
+		ammoMass:      conf.AmmoMass,
+		ammoRadius:    ammoRadius,
+		cooldownTicks: int64(conf.Cooldown / timePerTick),
 	}
 }
 
 func (self *Weapon) Fire(dir mgl64.Vec3) error {
+
+	if self.lastshot+self.cooldownTicks < self.ship.sim.tick {
+		return errors.New("Weapon cooling down")
+	}
+	self.lastshot = self.ship.sim.tick
 
 	err := self.ship.ConsumeEnergy(self.energy)
 	if err != nil {
@@ -71,4 +82,8 @@ func (self *Weapon) Fire(dir mgl64.Vec3) error {
 	self.ship.sim.addProjectile(pos, vel, self.ammoMass, self.ammoRadius)
 
 	return nil
+}
+
+func (self *Weapon) GetCoolDownTicks() int64 {
+	return self.cooldownTicks
 }

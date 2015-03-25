@@ -10,41 +10,46 @@ import (
 var pattern = []*nav.Waypoint{
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 0, -100},
-		MaxSpeed:  100,
-		Tolerance: 10,
+		MaxSpeed:  10,
+		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 100, -100},
-		MaxSpeed:  100,
-		Tolerance: 10,
+		MaxSpeed:  1,
+		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 100, 0},
-		MaxSpeed:  100,
-		Tolerance: 10,
+		MaxSpeed:  1,
+		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 100, 100},
-		MaxSpeed:  100,
-		Tolerance: 10,
+		MaxSpeed:  1,
+		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, 0, 100},
-		MaxSpeed:  100,
-		Tolerance: 10,
+		MaxSpeed:  1,
+		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, -100, 100},
-		MaxSpeed:  100,
-		Tolerance: 10,
+		MaxSpeed:  1,
+		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, -100, 0},
-		MaxSpeed:  100,
-		Tolerance: 10,
+		MaxSpeed:  1,
+		Tolerance: 30,
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{-100, -100, -100},
+		MaxSpeed:  1,
+		Tolerance: 30,
+	},
+	&nav.Waypoint{
+		Position:  mgl64.Vec3{0, 0, 0},
 		MaxSpeed:  100,
 		Tolerance: 10,
 	},
@@ -56,19 +61,24 @@ func init() {
 
 type JimSpaceShip struct {
 	avi.GenericShip
-	dir         mgl64.Vec3
-	fired       bool
-	navComputer *nav.Nav
+	dir           mgl64.Vec3
+	fired         bool
+	navComputer   *nav.Nav
+	cooldownTicks int64
 }
 
 func NewJim() avi.Ship {
-	return &JimSpaceShip{dir: mgl64.Vec3{1, 1, 1}}
+	return &JimSpaceShip{
+		dir:           mgl64.Vec3{1, 1, 1},
+		cooldownTicks: 1,
+	}
 }
 
-func (self *JimSpaceShip) Tick() {
+func (self *JimSpaceShip) Tick(tick int64) {
 	if self.navComputer == nil {
 		self.navComputer = nav.NewNav(self.Thrusters)
 		for _, wp := range pattern {
+			glog.V(3).Infoln("Adding wp", wp)
 			self.navComputer.AddWaypoint(wp)
 		}
 	}
@@ -88,16 +98,15 @@ func (self *JimSpaceShip) Tick() {
 		glog.V(3).Infoln("Failed to navigate", err)
 		return
 	}
-	glog.V(3).Infoln("Jim health", scan.Health)
-	if !self.fired || true {
-		self.fired = true
+	glog.V(3).Infoln("Jim", scan.Health, scan.Position, scan.Velocity.Len())
+
+	if tick%self.cooldownTicks == 0 {
 		for _, weapon := range self.Weapons {
 			err := weapon.Fire(scan.Position.Mul(-1))
 			if err != nil {
 				glog.V(3).Infoln("Failed to fire", err)
-			} else {
-
 			}
+			self.cooldownTicks = weapon.GetCoolDownTicks()
 		}
 	}
 }

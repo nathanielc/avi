@@ -17,7 +17,7 @@ func NewDuck() avi.Ship {
 	return &DuckSpaceShip{}
 }
 
-func (self *DuckSpaceShip) Tick() {
+func (self *DuckSpaceShip) Tick(tick int64) {
 
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)

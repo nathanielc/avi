@@ -15,7 +15,7 @@ var sensorType = reflect.TypeOf(&Sensor{})
 
 //Exported interface for ships
 type Ship interface {
-	Tick()
+	Tick(int64)
 	LinkParts([]ShipPartConf, *PartsConf) ([]Part, error)
 }
 
@@ -143,10 +143,10 @@ func (ship *shipT) ConsumeEnergy(amount float64) error {
 
 // Apply a given amount of thrust in a certain direction
 func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
-	accerlation := dir.Mul(force / ship.mass)
+	accerlation := dir.Normalize().Mul(force / ship.mass)
 	ship.velocity = ship.velocity.Add(accerlation.Mul(timePerTick))
 }
 
 func (ship *shipT) Tick() {
-	ship.ship.Tick()
+	ship.ship.Tick(ship.sim.tick)
 }

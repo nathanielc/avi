@@ -122,7 +122,6 @@ func (sim *Simulation) loop() string {
 	maxTicks := int64(*maxTicks)
 	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) {
 		fleet, cont = sim.doTick()
-		//glog.V(3).Infoln(sim.tick)
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
 			sim.stream.SendFrame(sim.ships, sim.projs)
 		}
@@ -170,7 +169,7 @@ func (sim *Simulation) tickShips() {
 func (sim *Simulation) propagateObjects() {
 	sim.sectorSize = minSectorSize
 	for _, ship := range sim.ships {
-		glog.V(3).Infoln("S: ",
+		glog.V(4).Infoln("S: ",
 			ship.GetPosition(),
 			ship.GetVelocity(),
 			ship.GetRadius(),
@@ -181,7 +180,7 @@ func (sim *Simulation) propagateObjects() {
 		}
 	}
 	if len(sim.projs) > 0 {
-		glog.V(3).Infoln("P: ",
+		glog.V(4).Infoln("P: ",
 			sim.projs[0].GetPosition(),
 			sim.projs[0].GetVelocity(),
 		)
@@ -193,21 +192,21 @@ func (sim *Simulation) propagateObjects() {
 		}
 	}
 
-	glog.V(3).Infoln("Sector size", sim.sectorSize)
+	glog.V(4).Infoln("Sector size", sim.sectorSize)
 }
 
 func (sim *Simulation) collideObjects() {
 	shipSectors := make(map[int64][]Object)
 	projSectors := make(map[int64][]Object)
-	glog.V(3).Infoln("#ships", len(sim.ships))
-	glog.V(3).Infoln("#projs", len(sim.projs))
+	glog.V(4).Infoln("#ships", len(sim.ships))
+	glog.V(4).Infoln("#projs", len(sim.projs))
 	for i := 0; i < len(sim.ships); {
 		ship := sim.ships[i]
 		if ship.GetHealth() <= 0 {
 			sim.removeShip(i)
 			continue
 		}
-		glog.V(3).Infoln(i, ship)
+		glog.V(4).Infoln(i, ship)
 		sim.placeInSectors(ship, shipSectors)
 		i++
 	}
@@ -220,8 +219,8 @@ func (sim *Simulation) collideObjects() {
 		sim.placeInSectors(proj, projSectors)
 		i++
 	}
-	glog.V(3).Infoln(shipSectors)
-	glog.V(3).Infoln(projSectors)
+	glog.V(4).Infoln(shipSectors)
+	glog.V(4).Infoln(projSectors)
 
 	// Group collisions
 	shipShip := make(map[*shipT]*shipT)
@@ -234,7 +233,7 @@ func (sim *Simulation) collideObjects() {
 			for j := i + 1; j < l; j++ {
 				ship2 := sector[j].(*shipT)
 				if collide(ship1, ship2) {
-					glog.V(3).Infoln("SS")
+					glog.V(4).Infoln("SS")
 					shipShip[ship1] = ship2
 				}
 			}
@@ -255,7 +254,7 @@ func (sim *Simulation) collideObjects() {
 			for j := 0; j < numProj; j++ {
 				proj := projs[j].(*projectile)
 				if collide(proj, ship) {
-					glog.V(3).Infoln("PS")
+					glog.V(4).Infoln("PS")
 					projShip[proj] = ship
 				}
 			}
@@ -277,7 +276,7 @@ func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
 
 	numSectors := sim.radius * 2 / sim.sectorSize
 	numSectors2 := numSectors * numSectors
-	glog.V(3).Infoln("#S:", numSectors)
+	glog.V(4).Infoln("#S:", numSectors)
 
 	sectorsList := make(map[int64]bool)
 	for i := -1; i <= 1; i++ {
@@ -297,14 +296,14 @@ func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
 		}
 	}
 
-	glog.V(3).Infoln("Placed in sectors:", sectorsList)
+	glog.V(4).Infoln("Placed in sectors:", sectorsList)
 }
 
 func collide(obj1, obj2 Object) bool {
 	distanceApart := obj1.GetPosition().Sub(obj2.GetPosition()).Len()
 	radii := obj1.GetRadius() + obj2.GetRadius()
 	if distanceApart < radii {
-		glog.V(3).Infoln("Collision", obj1.GetPosition(), obj2.GetPosition())
+		glog.V(4).Infoln("Collision", obj1.GetPosition(), obj2.GetPosition())
 		return true
 	}
 	return false
@@ -330,7 +329,7 @@ func (sim *Simulation) doShipShipCollision(ship1, ship2 *shipT) {
 
 func (sim *Simulation) doProjShipCollision(proj *projectile, ship *shipT) {
 
-	glog.V(3).Infoln("doPSC")
+	glog.V(4).Infoln("doPSC")
 	const cor = 0.1
 	mtd, normal := collisionPlane(ship, proj)
 	resolveIntersection(proj, ship, mtd)
@@ -364,7 +363,7 @@ func resolveCollision(obj1, obj2 Object, normal mgl64.Vec3, cor float64) {
 	vn := v.Dot(normal)
 
 	if vn > 0 {
-		glog.V(3).Infoln("sphere intersecting but moving away from each other already")
+		glog.V(4).Infoln("sphere intersecting but moving away from each other already")
 		return
 	}
 
@@ -374,7 +373,7 @@ func resolveCollision(obj1, obj2 Object, normal mgl64.Vec3, cor float64) {
 
 	damage := impulseToDamage * (ti - i)
 
-	glog.V(3).Infoln("Damage:", v1, v2, v, ti, i, damage)
+	glog.V(4).Infoln("Damage:", v1, v2, v, ti, i, damage)
 
 	obj1.setHealth(obj1.GetHealth() - damage)
 	obj2.setHealth(obj2.GetHealth() - damage)

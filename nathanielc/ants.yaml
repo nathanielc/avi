@@ -7,7 +7,27 @@ ships:
     parts: *JIM_PARTS
     texture: vegetables
   - name: duck
-    position: [20, 20, 20]
+    position: [-100, 100, -100]
+    parts: *JIM_PARTS
+    texture: vegetables
+  - name: duck
+    position: [-100, 100, 0]
+    parts: *JIM_PARTS
+    texture: vegetables
+  - name: duck
+    position: [-100, 100, 100]
+    parts: *JIM_PARTS
+    texture: vegetables
+  - name: duck
+    position: [-100, 0, 100]
+    parts: *JIM_PARTS
+    texture: vegetables
+  - name: duck
+    position: [-100, -100, 100]
+    parts: *JIM_PARTS
+    texture: vegetables
+  - name: duck
+    position: [-100, -100, 0]
     parts: *JIM_PARTS
     texture: vegetables
 
