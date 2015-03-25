@@ -14,8 +14,9 @@ message Vector {
 message Object {
     required int64 ID = 1;
     required Vector pos = 2;
-    required Texture tex = 3;
-    optional string tex_custom = 4;
+    required float radius = 3;
+    required Texture tex = 4;
+    optional string tex_custom = 5;
 }
 
 message Frame {

@@ -9,7 +9,7 @@ import (
 )
 
 const minSectorSize = 100
-const timePerTick = 1e-3
+const timePerTick = 1e-2
 
 const impulseToDamage = 1.0
 

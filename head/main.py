@@ -20,12 +20,14 @@ from direct.gui.DirectGui import *
 import sys
 import json
 import time
-import object_pb2
+import gzip
+
+import head_pb2
 
 
 class World(object):
 
-    def __init__(self):
+    def __init__(self, frames_src):
         # This is the initialization we had before
         self.title = OnscreenText(  # Create the title
             text="Avi",
@@ -43,13 +45,13 @@ class World(object):
         self.frames = []
         self.objs = {}
 
-        self.loadFrames()
+        self.loadFrames(frames_src)
         self.loadMap()
         self.loop()
 
     def loop(self):
         count = 0
-        rate = 100
+        rate = 5
         while True:
             if count % rate == 0:
                 self.updateEvents()
@@ -57,9 +59,9 @@ class World(object):
             taskMgr.step()
 
 
-    def loadFrames(self):
-        with open('frames.dat') as f:
-            self.frames = object_pb2.Stream()
+    def loadFrames(self, frames_src):
+        with gzip.open(frames_src) as f:
+            self.frames = head_pb2.Stream()
             self.frames.ParseFromString(f.read())
 
 
@@ -67,18 +69,20 @@ class World(object):
         print "Frame ", self.frame
         frame = self.frames.frame[self.frame]
         self.frame = (self.frame + 1) % len(self.frames.frame)
+        alive = {}
         for obj in frame.object:
             name = obj.ID
+            alive[name] = True
             model = None
             if name not in self.objs:
-                print "New model"
-                model = loader.loadModel("models/planet_sphere")
+                model = loader.loadModel("models/sphere")
                 if obj.tex == 0:
-                    model.setScale(50)
-                    tex = loader.loadTexture("models/earth_1k_tex.jpg")
+                    model.setScale(obj.radius)
+                    tex = loader.loadTexture("models/%s.jpg" % obj.tex_custom)
                 else:
-                    tex = loader.loadTexture("models/sun_1k_tex.jpg")
-                    model.setScale(5)
+                    print obj.radius
+                    tex = loader.loadTexture("models/steel.jpg")
+                    model.setScale(obj.radius)
                 model.setTexture(tex, 1)
                 model.reparentTo(render)
                 self.objs[name] = model
@@ -87,6 +91,16 @@ class World(object):
 
             pos = obj.pos
             model.setPos(pos.x, pos.y, pos.z)
+
+        # Remove objects that are no longer in the frame
+        toRemove = []
+        for obj in self.objs:
+            if obj not in alive:
+                self.objs[obj].removeNode()
+                toRemove.append(obj)
+
+        for obj in toRemove:
+            del self.objs[obj]
 
 
 
@@ -119,4 +133,4 @@ class World(object):
 
 # end class world
 
-w = World()
+w = World(sys.argv[1])

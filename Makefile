@@ -1,5 +1,5 @@
 ## simple makefile to log workflow
-.PHONY: all test clean build install
+.PHONY: all test clean proto build install
 
 GOFLAGS ?= $(GOFLAGS:)
 

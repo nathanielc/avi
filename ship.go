@@ -24,6 +24,7 @@ type shipT struct {
 	ship  Ship
 	fleet string
 	sim   *Simulation
+	texture       string
 	objectT
 	parts         []Part
 	thrusters     []*Thruster
@@ -32,7 +33,6 @@ type shipT struct {
 	sensors       []*Sensor
 	totalEnergy   float64
 	currentEnergy float64
-	texture       string
 }
 
 type shipFactory func() Ship

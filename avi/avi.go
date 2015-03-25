@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"compress/gzip"
 	"github.com/nvcook42/avi"
 	"github.com/nvcook42/avi/logger"
 	_ "github.com/nvcook42/avi/ships"
@@ -11,6 +12,7 @@ import (
 
 var partsFile = flag.String("parts", "parts.yaml", "YAML file where available parts are defined")
 var mapFile = flag.String("map", "map.yaml", "YAML file that defines the map")
+var saveFile = flag.String("save", "save.avi", "Where to save the simulation data")
 
 func main() {
 
@@ -56,9 +58,11 @@ func main() {
 		fleets = append(fleets, fleet)
 	}
 
-	f, _ := os.Create("stream.txt")
+	f, _ := os.Create(*saveFile)
 	defer f.Close()
-	stream := avi.NewStream(f)
+	g := gzip.NewWriter(f)
+	defer g.Close()
+	stream := avi.NewStream(g)
 
 	sim, err := avi.NewSimulation(mp, parts, fleets, stream)
 	if err != nil {

@@ -53,9 +53,12 @@ func appendObject(frame *head.Frame, obj Object, tex head.Texture, customTexture
 		Z: &z,
 	}
 
+	r := float32(obj.GetRadius())
+
 	object := &head.Object{
 		ID:  proto.Int64(obj.GetID()),
 		Pos: pos,
+		Radius: &r,
 		Tex: &tex,
 	}
 

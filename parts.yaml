@@ -7,7 +7,7 @@ engines:
     energy: 100
   nuclear:
     mass: 100000
-    radius: 60
+    radius: 10
     energy: 10000
 
 #List of thrusters

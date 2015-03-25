@@ -5,6 +5,11 @@ ships:
   - name: duck
     position: [0, 0, 0]
     parts: *JIM_PARTS
+    texture: vegetables
+  - name: duck
+    position: [20, 20, 20]
+    parts: *JIM_PARTS
+    texture: vegetables
 
 
 
@@ -12,10 +17,10 @@ ship_types:
   parts: &JIM_PARTS
     - name: nuclear
       type: engine
-      position: [10,0,0]
+      position: [1,0,0]
     - name: pea-shooter
       type: weapon
-      position: [0,10,0]
+      position: [0,1,0]
     - name: antenna
       type: sensor
-      position: [0,0,-10]
+      position: [0,0,-1]
