@@ -4,7 +4,6 @@ How to install
 ```sh
 $ mkdir ~/gocode
 $ export GOPATH=~/gocode
-$ export PATH=$GOPATH/bin:$PATH
 $ go get github.com/nvcook42/avi
 ```
 How to run a simulation
