@@ -7,4 +7,4 @@ $ go run avi/avi.go nathanielc/*.yaml
 
 How to view the simulation
 
-& python head/main.py save.avi
+$ python head/main.py save.avi
