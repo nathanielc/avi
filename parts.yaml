@@ -34,7 +34,7 @@ weapons:
     cooldown: 1
 
   singularity-cannon:
-	mass: 7
+    mass: 7
     radius: 0.21
     energy: 1
     ammo_mass: 8

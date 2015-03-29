@@ -29,6 +29,6 @@ ship_types:
     - name: antenna
       type: sensor
       position: [0,0,-1]
-	- name: singularity-cannon
-	  type: weapon
-	  position: [0,2,0]
+    - name: singularity-cannon
+      type: weapon
+      position: [0,2,0]
