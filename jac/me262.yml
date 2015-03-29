@@ -2,11 +2,11 @@
 name: me262
 center: [-300, -150, 200]
 ships:
-  - name: jim
+  - name: jill
     position: [0, 0, 0]
     parts: *JIM_PARTS
     texture: me262
-  - name: jim
+  - name: jill
     position: [-100, -100, -100]
     parts: *JIM_PARTS
     texture: me262
