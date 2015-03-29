@@ -29,8 +29,8 @@ weapons:
     mass: 5
     radius: 0.16
     energy: 1
-    ammo_mass: 10
-    ammo_velocity: 10
+    ammo_mass: 1
+    ammo_velocity: 100
     cooldown: 1
 
 #List of sensors
@@ -39,4 +39,5 @@ sensors:
     mass: 1
     radius: 0.05
     energy: 2
+    power: 10
 

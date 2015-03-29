@@ -15,15 +15,21 @@ func PartNotAvailable(name string) error {
 type Part interface {
 	Object
 	setShip(*shipT)
+	reset()
 }
 
 type partT struct {
 	objectT
 	ship *shipT
+	used bool
 }
 
 func (part *partT) setShip(ship *shipT) {
 	part.ship = ship
+}
+
+func (part *partT) reset() {
+	part.used = false
 }
 
 type PartsConf struct {
@@ -49,3 +55,4 @@ func LoadPartsFromData(in []byte) (*PartsConf, error) {
 	}
 	return &conf, nil
 }
+

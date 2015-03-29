@@ -144,9 +144,16 @@ func (ship *shipT) ConsumeEnergy(amount float64) error {
 // Apply a given amount of thrust in a certain direction
 func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
 	accerlation := dir.Normalize().Mul(force / ship.mass)
-	ship.velocity = ship.velocity.Add(accerlation.Mul(timePerTick))
+	ship.ApplyAcc(accerlation)
+}
+
+func (ship *shipT) ApplyAcc(dir mgl64.Vec3) {
+	ship.velocity = ship.velocity.Add(dir.Mul(timePerTick))
 }
 
 func (ship *shipT) Tick() {
 	ship.ship.Tick(ship.sim.tick)
+	for _, part := range ship.parts {
+		part.reset()
+	}
 }

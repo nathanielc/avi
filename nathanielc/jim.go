@@ -50,7 +50,7 @@ var pattern = []*nav.Waypoint{
 	},
 	&nav.Waypoint{
 		Position:  mgl64.Vec3{0, 0, 0},
-		MaxSpeed:  100,
+		MaxSpeed:  50,
 		Tolerance: 10,
 	},
 }
@@ -65,12 +65,14 @@ type JimSpaceShip struct {
 	fired         bool
 	navComputer   *nav.Nav
 	cooldownTicks int64
+	target        int64
 }
 
 func NewJim() avi.Ship {
 	return &JimSpaceShip{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
+		target:        -1,
 	}
 }
 
@@ -98,15 +100,47 @@ func (self *JimSpaceShip) Tick(tick int64) {
 		glog.V(3).Infoln("Failed to navigate", err)
 		return
 	}
-	glog.V(3).Infoln("Jim", scan.Health, scan.Position, scan.Velocity.Len())
+	glog.V(3).Infoln("Jim", scan.Health, scan.Position, scan.Velocity.Len(), len(scan.Ships))
+	if !targetExists(self.target, scan.Ships) {
+		distance := 0.0
+		for id, ship := range scan.Ships {
+			d := ship.GetPosition().Sub(scan.Position).Len()
+			if d < distance || distance == 0 {
+				distance = d
+				self.target = id
+			}
+		}
+	}
+	if !targetExists(self.target, scan.Ships) {
+		return
+	}
+	targetPos := scan.Ships[self.target].GetPosition()
+	targetVel := scan.Ships[self.target].GetVelocity()
+
+	wp := &nav.Waypoint{
+		Position:  targetPos,
+		MaxSpeed:  100,
+		Tolerance: 150,
+	}
+	self.navComputer.SetWaypoint(wp)
 
 	if tick%self.cooldownTicks == 0 {
 		for _, weapon := range self.Weapons {
-			err := weapon.Fire(scan.Position.Mul(-1))
+			vel := weapon.GetAmmoVel()
+			time := scan.Position.Sub(targetPos).Len() / vel
+
+			dir := targetPos.Add(targetVel.Mul(time)).Sub(scan.Position).Sub(scan.Velocity)
+
+			err := weapon.Fire(dir)
 			if err != nil {
 				glog.V(3).Infoln("Failed to fire", err)
 			}
 			self.cooldownTicks = weapon.GetCoolDownTicks()
 		}
 	}
+}
+
+func targetExists(target int64, ships map[int64]avi.Object) bool {
+	_, ok := ships[target]
+	return ok
 }

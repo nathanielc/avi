@@ -1,15 +1,19 @@
 ---
-name: gophers
-center: [-500, -500, -500]
+name: dogs
+center: [500, -500, 500]
 ships:
   - name: jim
     position: [0, 0, 0]
     parts: *JIM_PARTS
-    texture: cookie_monster
+    texture: doge
   - name: jim
     position: [-100, -100, -100]
     parts: *JIM_PARTS
-    texture: cookie_monster
+    texture: doge
+  - name: jim
+    position: [-300, 100, -100]
+    parts: *JIM_PARTS
+    texture: doge
 
 
 ship_types:

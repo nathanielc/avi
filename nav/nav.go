@@ -1,11 +1,13 @@
 package nav
 
 import (
+	"errors"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
 	"github.com/nvcook42/avi"
-	"math"
 )
+
+var NoMoreWaypoints = errors.New("No more waypoints")
 
 type Waypoint struct {
 	Position  mgl64.Vec3
@@ -26,6 +28,10 @@ func NewNav(thrusters []*avi.Thruster) *Nav {
 	}
 }
 
+func (nav *Nav) SetWaypoint(wp *Waypoint) {
+	nav.next = wp
+}
+
 func (nav *Nav) AddWaypoint(wp *Waypoint) {
 	nav.waypoints.Push(wp)
 }
@@ -33,17 +39,17 @@ func (nav *Nav) AddWaypoint(wp *Waypoint) {
 func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 	if nav.next == nil {
 		nav.next = nav.waypoints.Pop()
+		if nav.next == nil {
+			return NoMoreWaypoints
+		}
 	}
 
 	glog.V(3).Infoln("Next", nav.next)
 
-	speed := vel.Len()
-	//delta := pos.Sub(nav.next.Position)
 	delta := nav.next.Position.Sub(pos)
 	distance := delta.Len()
 
 	t := nav.next.Tolerance
-	t2 := t * t
 
 	if distance < t {
 		glog.V(2).Infoln("Hit waypoint", nav.next, distance, t)
@@ -51,27 +57,18 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 		return nil
 	}
 
-	hypo := math.Sqrt(distance*distance + t2)
-	toleranceAngle := math.Asin(t / hypo)
 
-	realAngle := math.Acos(pos.Dot(delta) / (distance * pos.Len()))
+	desiredVel := delta.Normalize().Mul(nav.next.MaxSpeed)
 
-	if realAngle > toleranceAngle {
-		if speed > nav.next.MaxSpeed {
-			nav.thrust(vel.Mul(-1))
-		}
-		nav.thrust(delta)
-	} else if speed < nav.next.MaxSpeed {
-		nav.thrust(delta)
-	}
+	accerlation := desiredVel.Sub(vel)
 
-	return nil
+	return nav.thrust(accerlation)
 }
 
-func (nav *Nav) thrust(dir mgl64.Vec3) error {
-	glog.V(3).Infoln("Thrusting", dir.Normalize())
+func (nav *Nav) thrust(acc mgl64.Vec3) error {
+	glog.V(3).Infoln("Thrusting", acc)
 	for _, thruster := range nav.thrusters {
-		err := thruster.Thrust(dir, 1.0)
+		err := thruster.Thrust(acc)
 		if err != nil {
 			return err
 		}

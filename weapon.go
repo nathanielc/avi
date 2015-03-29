@@ -63,7 +63,7 @@ func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 
 func (self *Weapon) Fire(dir mgl64.Vec3) error {
 
-	if self.lastshot+self.cooldownTicks < self.ship.sim.tick {
+	if self.lastshot+self.cooldownTicks > self.ship.sim.tick {
 		return errors.New("Weapon cooling down")
 	}
 	self.lastshot = self.ship.sim.tick
@@ -77,7 +77,7 @@ func (self *Weapon) Fire(dir mgl64.Vec3) error {
 
 	norm := dir.Normalize()
 	pos := norm.Mul(self.ship.radius + 1).Add(self.ship.position)
-	vel := norm.Mul(self.ammoVelocity)
+	vel := norm.Mul(self.ammoVelocity).Add(self.ship.velocity)
 
 	self.ship.sim.addProjectile(pos, vel, self.ammoMass, self.ammoRadius)
 
@@ -86,4 +86,8 @@ func (self *Weapon) Fire(dir mgl64.Vec3) error {
 
 func (self *Weapon) GetCoolDownTicks() int64 {
 	return self.cooldownTicks
+}
+
+func (self *Weapon) GetAmmoVel() float64 {
+	return self.ammoVelocity
 }

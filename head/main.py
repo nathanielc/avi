@@ -3,7 +3,8 @@
 from direct.showbase.ShowBase import ShowBase
 base = ShowBase()
 
-from panda3d.core import NodePath, TextNode
+from panda3d.core import NodePath, TextNode, WindowProperties, CompassEffect
+
 from direct.gui.DirectGui import *
 import sys
 import json
@@ -23,10 +24,6 @@ class World(object):
             style=1, fg=(1, 1, 1, 1), pos=(-0.1, 0.1), scale=.07)
 
         base.setBackgroundColor(0, 0, 0)  # Set the background to black
-        #base.disableMouse()  # disable mouse control of the camera
-        camera.setPos(150, 0, 0)  # Set the camera position (X, Y, Z)
-        camera.setHpr(0, -90, 0)  # Set the camera orientation
-        #(heading, pitch, roll) in degrees
 
 
         self.frame = 0
@@ -35,16 +32,36 @@ class World(object):
 
         self.loadFrames(frames_src)
         self.loadMap()
-        self.loop()
 
-    def loop(self):
-        count = 0
-        rate = 2
-        while True:
-            if count % rate == 0:
-                self.updateEvents()
-            count += 1
-            taskMgr.step()
+        taskMgr.add(self.updateFrame, "update frame")
+
+        # hide mouse cursor, comment these 3 lines to see the cursor
+        #props = WindowProperties()
+        #props.setCursorHidden(True)
+        #base.win.requestProperties(props)
+        #base.disableMouse()  # disable mouse control of the camera
+
+
+
+        ## dummy node for camera, we will rotate the dummy node fro camera rotation
+        #self.camera_origin = render.attachNewNode('camOrigin')
+        #self.camera_origin.reparentTo(render) # inherit transforms
+        ##self.camera_origin.setEffect(CompassEffect.make(render)) # NOT inherit rotation
+
+        ## the camera
+        #base.camera.reparentTo(self.camera_origin)
+        #base.camera.lookAt(self.camera_origin)
+
+        ## camera zooming
+        #base.accept('wheel_up', self.wheel_up)
+        #base.accept('wheel_down', self.wheel_down)
+
+
+        ## global vars for camera rotation
+        #self.heading = 0
+        #self.pitch = 0
+
+        #taskMgr.add(self.cameraTask, 'thirdPersonCameraTask')
 
 
     def loadFrames(self, frames_src):
@@ -53,7 +70,7 @@ class World(object):
             self.frames.ParseFromString(f.read())
 
 
-    def updateEvents(self):
+    def updateFrame(self, task):
         print "Frame ", self.frame
         frame = self.frames.frame[self.frame]
         self.frame = (self.frame + 1) % len(self.frames.frame)
@@ -89,6 +106,8 @@ class World(object):
         for obj in toRemove:
             del self.objs[obj]
 
+        return task.cont
+
     def loadMap(self):
         # These are the same steps used to load the sky model that we used in the
         # last step
@@ -103,5 +122,31 @@ class World(object):
         # Scale the size of the sky.
         self.sky.setScale(1000)
 
+    def cameraTask(self, task):
+
+        md = base.win.getPointer(0)
+
+        x = md.getX()
+        y = md.getY()
+
+        if base.win.movePointer(0, 300, 300):
+            self.heading = self.heading + (x - 300) * 0.5
+            self.pitch = self.pitch + (y - 300) * 0.5
+
+        camera.setHpr(self.heading, self.pitch,0)
+
+        return task.cont
+
+    def wheel_up(self):
+        base.camera.setPos(base.camera.getPos()+200 * globalClock.getDt())
+
+    def wheel_down(self):
+        base.camera.setPos(base.camera.getPos()-200 * globalClock.getDt())
+
+
+
+
+
 # end class world
 w = World(sys.argv[1])
+run()

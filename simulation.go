@@ -11,7 +11,7 @@ import (
 const minSectorSize = 100
 const timePerTick = 1e-2
 
-const impulseToDamage = 0.001
+const impulseToDamage = 1.1
 
 var maxTicks = flag.Int("ticks", -1, "Optional maximum ticks to simulate")
 var streamRate = flag.Int("rate", 10, "Every 'rate' ticks emit a frame")
@@ -202,7 +202,7 @@ func (sim *Simulation) collideObjects() {
 	glog.V(4).Infoln("#projs", len(sim.projs))
 	for i := 0; i < len(sim.ships); {
 		ship := sim.ships[i]
-		if ship.GetHealth() <= 0 {
+		if ship.GetHealth() <= 0 || ship.GetPosition().Len() > float64(sim.radius){
 			sim.removeShip(i)
 			continue
 		}
@@ -212,7 +212,7 @@ func (sim *Simulation) collideObjects() {
 	}
 	for i := 0; i < len(sim.projs); {
 		proj := sim.projs[i]
-		if proj.GetHealth() < 0 {
+		if proj.GetHealth() < 0 || proj.GetPosition().Len() > float64(sim.radius) {
 			sim.projs = append(sim.projs[:i], sim.projs[i+1:]...)
 			continue
 		}

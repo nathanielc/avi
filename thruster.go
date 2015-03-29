@@ -1,6 +1,7 @@
 package avi
 
 import (
+	"errors"
 	"github.com/go-gl/mathgl/mgl64"
 )
 
@@ -46,14 +47,24 @@ func NewThrusterFromConf(pos mgl64.Vec3, conf ThrusterConf) *Thruster {
 	}
 }
 
-func (self *Thruster) Thrust(dir mgl64.Vec3, power float64) error {
+// Fire the thruster the length of dir indicates how hard
+// to fire the thruster. The length should equal to the
+// accerlation to apply to the ship.
+func (self *Thruster) Thrust(dir mgl64.Vec3) error {
+	if self.used {
+		return errors.New("Already used thruster this tick")
+	}
+	self.used = true
 
-	force := self.force * power
-	energy := self.energy * power
+	force := self.ship.mass * dir.Len()
+	if force > self.force {
+		force = self.force
+	}
+	energy := self.energy * force / self.force
 	err := self.ship.ConsumeEnergy(energy)
 	if err != nil {
 		return err
 	}
-	self.ship.ApplyThrust(dir, force)
+	self.ship.ApplyAcc(dir.Normalize().Mul(force / self.ship.mass))
 	return nil
 }
