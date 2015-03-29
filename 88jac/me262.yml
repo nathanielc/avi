@@ -1,0 +1,34 @@
+---
+name: me262
+center: [-300, -150, 200]
+ships:
+  - name: jim
+    position: [0, 0, 0]
+    parts: *JIM_PARTS
+    texture: me262
+  - name: jim
+    position: [-100, -100, -100]
+    parts: *JIM_PARTS
+    texture: me262
+
+
+ship_types:
+  parts: &JIM_PARTS
+    - name: nuclear
+      type: engine
+      position: [0,0,0]
+    - name: rocket
+      type: thruster
+      position: [1,0,0]
+    - name: rocket
+      type: thruster
+      position: [-1,0,0]
+    - name: pea-shooter
+      type: weapon
+      position: [0,1,0]
+    - name: antenna
+      type: sensor
+      position: [0,0,-1]
+	- name: singularity-cannon
+	  type: weapon
+	  position: [0,2,0]

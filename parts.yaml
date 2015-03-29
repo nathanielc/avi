@@ -33,6 +33,13 @@ weapons:
     ammo_velocity: 100
     cooldown: 1
 
+  singularity-cannon:
+	mass: 7
+    radius: 0.21
+    energy: 1
+    ammo_mass: 8
+    ammo_velocity: 105
+    cooldown: 0.4
 #List of sensors
 sensors:
   antenna:
