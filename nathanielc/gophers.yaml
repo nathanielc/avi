@@ -1,6 +1,6 @@
 ---
 name: gophers
-center: [-500, -500, -500]
+center: [-100, -100, -100]
 ships:
   - name: jim
     position: [0, 0, 0]
