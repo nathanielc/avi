@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/go-gl/mathgl/mgl64"
 	"reflect"
+	"math"
 )
 
 var ErrOutOfEnergy = errors.New("out of energy")
@@ -13,15 +14,18 @@ var engineType = reflect.TypeOf(&Engine{})
 var weaponType = reflect.TypeOf(&Weapon{})
 var sensorType = reflect.TypeOf(&Sensor{})
 
-//Exported interface for ships
-type Ship interface {
-	Tick(int64)
-	LinkParts([]ShipPartConf, *PartsConf) ([]Part, error)
+
+type ShipConf struct {
+	Pilot        string
+	Texture      string
+	HullStrength float64 `yaml:"hull_strength"`
+	Position     []float64
+	Parts        []ShipPartConf
 }
 
 //Internal representaion of the ship
 type shipT struct {
-	ship    Ship
+	pilot Pilot
 	fleet   string
 	sim     *Simulation
 	texture string
@@ -35,29 +39,12 @@ type shipT struct {
 	currentEnergy float64
 }
 
-type shipFactory func() Ship
-
-var registeredShips = make(map[string]shipFactory)
-
-//Register a ship to make it available
-func RegisterShip(name string, sf shipFactory) {
-	registeredShips[name] = sf
-}
-
-// Get a registered ship by name
-func getShipByName(name string) Ship {
-	if sf, ok := registeredShips[name]; ok {
-		return sf()
-	}
-	return nil
-}
-
-func newShip(id int64, sim *Simulation, fleet string, pos mgl64.Vec3, ship Ship, conf ShipConf) (*shipT, error) {
+func newShip(id int64, sim *Simulation, fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
 
 	newShip := &shipT{
 		sim:       sim,
 		fleet:     fleet,
-		ship:      ship,
+		pilot:      pilot,
 		parts:     make([]Part, 0),
 		thrusters: make([]*Thruster, 0),
 		engines:   make([]*Engine, 0),
@@ -68,7 +55,6 @@ func newShip(id int64, sim *Simulation, fleet string, pos mgl64.Vec3, ship Ship,
 
 	newShip.id = id
 	newShip.position = pos
-	newShip.health = 1000
 
 	err := newShip.addParts(conf.Parts)
 	if err != nil {
@@ -76,12 +62,13 @@ func newShip(id int64, sim *Simulation, fleet string, pos mgl64.Vec3, ship Ship,
 	}
 
 	newShip.determineSize()
+	newShip.health = conf.HullStrength * 4 * math.Pi * newShip.radius
 
 	return newShip, nil
 }
 
 func (ship *shipT) addParts(partsConf []ShipPartConf) error {
-	parts, err := ship.ship.LinkParts(partsConf, ship.sim.availableParts)
+	parts, err := ship.pilot.LinkParts(partsConf, ship.sim.availableParts)
 	if err != nil {
 		return err
 	}
@@ -152,7 +139,7 @@ func (ship *shipT) ApplyAcc(dir mgl64.Vec3) {
 }
 
 func (ship *shipT) Tick() {
-	ship.ship.Tick(ship.sim.tick)
+	ship.pilot.Tick(ship.sim.tick)
 	for _, part := range ship.parts {
 		part.reset()
 	}

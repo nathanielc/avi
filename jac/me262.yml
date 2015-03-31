@@ -2,14 +2,16 @@
 name: me262
 center: [-300, -150, 200]
 ships:
-  - name: jill
+  - pilot: jill
     position: [0, 0, 0]
     parts: *JIM_PARTS
     texture: me262
-  - name: jill
+    hull_strength: 1.5
+  - pilot: jill
     position: [-100, -100, -100]
     parts: *JIM_PARTS
     texture: me262
+    hull_strength: 1.5
 
 
 ship_types:

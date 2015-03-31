@@ -18,6 +18,12 @@ type Part interface {
 	reset()
 }
 
+type ShipPartConf struct {
+	Name     string
+	Position []float64
+	Type     string
+}
+
 type partT struct {
 	objectT
 	ship *shipT

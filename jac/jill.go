@@ -8,11 +8,11 @@ import (
 )
 
 func init() {
-	avi.RegisterShip("jill", NewJim)
+	avi.RegisterPilot("jill", NewJim)
 }
 
-type JimSpaceShip struct {
-	avi.GenericShip
+type JillPilot struct {
+	avi.GenericPilot
 	dir           mgl64.Vec3
 	fired         bool
 	navComputer   *nav.Nav
@@ -20,15 +20,15 @@ type JimSpaceShip struct {
 	target        int64
 }
 
-func NewJim() avi.Ship {
-	return &JimSpaceShip{
+func NewJim() avi.Pilot {
+	return &JillPilot{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        -1,
 	}
 }
 
-func (self *JimSpaceShip) Tick(tick int64) {
+func (self *JillPilot) Tick(tick int64) {
 	if self.navComputer == nil {
 		self.navComputer = nav.NewNav(self.Thrusters)
 

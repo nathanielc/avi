@@ -56,11 +56,11 @@ var pattern = []*nav.Waypoint{
 }
 
 func init() {
-	avi.RegisterShip("jim", NewJim)
+	avi.RegisterPilot("jim", NewJim)
 }
 
-type JimSpaceShip struct {
-	avi.GenericShip
+type JimPilot struct {
+	avi.GenericPilot
 	dir           mgl64.Vec3
 	fired         bool
 	navComputer   *nav.Nav
@@ -69,15 +69,15 @@ type JimSpaceShip struct {
 	ctlp          int64
 }
 
-func NewJim() avi.Ship {
-	return &JimSpaceShip{
+func NewJim() avi.Pilot {
+	return &JimPilot{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        -1,
 	}
 }
 
-func (self *JimSpaceShip) Tick(tick int64) {
+func (self *JimPilot) Tick(tick int64) {
 	if self.navComputer == nil {
 		self.navComputer = nav.NewNav(self.Thrusters)
 		for _, wp := range pattern {
@@ -151,7 +151,7 @@ func (self *JimSpaceShip) Tick(tick int64) {
 			vel := weapon.GetAmmoVel()
 			time := scan.Position.Sub(targetPos).Len() / vel
 
-			dir := targetPos.Add(targetVel.Mul(time)).Sub(scan.Position).Sub(scan.Velocity.Mul(time))
+			dir := targetPos.Add(targetVel.Mul(time*1.5)).Sub(scan.Position).Sub(scan.Velocity.Mul(time))
 
 			err := weapon.Fire(dir)
 			if err != nil {

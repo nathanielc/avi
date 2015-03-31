@@ -6,18 +6,18 @@ import (
 )
 
 func init() {
-	avi.RegisterShip("duck", NewDuck)
+	avi.RegisterPilot("duck", NewDuck)
 }
 
-type DuckSpaceShip struct {
-	avi.GenericShip
+type DuckPilot struct {
+	avi.GenericPilot
 }
 
-func NewDuck() avi.Ship {
-	return &DuckSpaceShip{}
+func NewDuck() avi.Pilot {
+	return &DuckPilot{}
 }
 
-func (self *DuckSpaceShip) Tick(tick int64) {
+func (self *DuckPilot) Tick(tick int64) {
 
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)

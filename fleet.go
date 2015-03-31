@@ -6,18 +6,6 @@ import (
 	"io/ioutil"
 )
 
-type ShipPartConf struct {
-	Name     string
-	Position []float64
-	Type     string
-}
-
-type ShipConf struct {
-	Name     string
-	Texture  string
-	Position []float64
-	Parts    []ShipPartConf
-}
 
 type FleetConf struct {
 	Name   string

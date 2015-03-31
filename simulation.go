@@ -63,10 +63,10 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 
 		for _, shipConf := range fleet.Ships {
 
-			glog.Infof("Adding ship %s for fleet %s", shipConf.Name, fleet.Name)
-			ship := getShipByName(shipConf.Name)
-			if ship == nil {
-				return nil, errors.New(fmt.Sprintf("Unknown ship name '%s'", shipConf.Name))
+			glog.Infof("Adding ship %s for fleet %s", shipConf.Pilot, fleet.Name)
+			pilot := getPilot(shipConf.Pilot)
+			if pilot == nil {
+				return nil, errors.New(fmt.Sprintf("Unknown pilot '%s'", shipConf.Pilot))
 			}
 
 			relativePos, err := sliceToVec(shipConf.Position)
@@ -75,7 +75,7 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 			}
 
 			pos := center.Add(relativePos)
-			err = sim.AddShip(fleet.Name, pos, ship, shipConf)
+			err = sim.AddShip(fleet.Name, pos, pilot, shipConf)
 			if err != nil {
 				return nil, err
 			}
@@ -91,12 +91,12 @@ func (sim *Simulation) getNextID() int64 {
 	return id
 }
 
-func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, ship Ship, conf ShipConf) error {
-	s, err := newShip(sim.getNextID(), sim, fleet, pos, ship, conf)
+func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) error {
+	ship, err := newShip(sim.getNextID(), sim, fleet, pos, pilot, conf)
 	if err != nil {
 		return err
 	}
-	sim.ships = append(sim.ships, s)
+	sim.ships = append(sim.ships, ship)
 
 	sim.survivors[fleet]++
 	return nil

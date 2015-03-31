@@ -2,34 +2,41 @@
 name: ants
 center: [0, 0, 0]
 ships:
-  - name: duck
+  - pilot: duck
     position: [0, 0, 0]
     parts: *DUCK_PARTS
     texture: vegetables
-  - name: duck
+    hull_strength: 1.5
+  - pilot: duck
     position: [-100, 100, -100]
     parts: *DUCK_PARTS
     texture: vegetables
-  - name: duck
+    hull_strength: 1.5
+  - pilot: duck
     position: [-100, 100, 0]
     parts: *DUCK_PARTS
     texture: vegetables
-  - name: duck
+    hull_strength: 1.5
+  - pilot: duck
     position: [-100, 100, 100]
     parts: *DUCK_PARTS
     texture: vegetables
-  - name: duck
+    hull_strength: 1.5
+  - pilot: duck
     position: [-100, 0, 100]
     parts: *DUCK_PARTS
     texture: vegetables
-  - name: duck
+    hull_strength: 1.5
+  - pilot: duck
     position: [-100, -100, 100]
     parts: *DUCK_PARTS
     texture: vegetables
-  - name: duck
+    hull_strength: 1.5
+  - pilot: duck
     position: [-100, -100, 0]
     parts: *DUCK_PARTS
     texture: vegetables
+    hull_strength: 1.5
 
 
 

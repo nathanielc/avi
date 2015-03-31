@@ -2,14 +2,16 @@
 name: gophers
 center: [-400, -100, -100]
 ships:
-  - name: jim
+  - pilot: jim
     position: [0, 0, 0]
     parts: *JIM_PARTS
     texture: cookie_monster
-  - name: jim
+    hull_strength: 1.5
+  - pilot: jim
     position: [-100, -100, -100]
     parts: *JIM_PARTS
     texture: cookie_monster
+    hull_strength: 1.5
 
 
 ship_types:

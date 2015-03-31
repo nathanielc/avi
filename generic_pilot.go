@@ -5,14 +5,14 @@ import (
 	"fmt"
 )
 
-type GenericShip struct {
+type GenericPilot struct {
 	Engines   []*Engine
 	Thrusters []*Thruster
 	Weapons   []*Weapon
 	Sensors   []*Sensor
 }
 
-func (self *GenericShip) LinkParts(shipParts []ShipPartConf, availableParts *PartsConf) ([]Part, error) {
+func (self *GenericPilot) LinkParts(shipParts []ShipPartConf, availableParts *PartsConf) ([]Part, error) {
 	parts := make([]Part, 0)
 	self.Engines = make([]*Engine, 0)
 	self.Thrusters = make([]*Thruster, 0)
