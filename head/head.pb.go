@@ -26,17 +26,23 @@ var _ = math.Inf
 type Texture int32
 
 const (
-	Texture_SHIP       Texture = 0
-	Texture_PROJECTILE Texture = 1
+	Texture_SHIP          Texture = 0
+	Texture_ASTEROID      Texture = 1
+	Texture_CONTROL_POINT Texture = 2
+	Texture_PROJECTILE    Texture = 3
 )
 
 var Texture_name = map[int32]string{
 	0: "SHIP",
-	1: "PROJECTILE",
+	1: "ASTEROID",
+	2: "CONTROL_POINT",
+	3: "PROJECTILE",
 }
 var Texture_value = map[string]int32{
-	"SHIP":       0,
-	"PROJECTILE": 1,
+	"SHIP":          0,
+	"ASTEROID":      1,
+	"CONTROL_POINT": 2,
+	"PROJECTILE":    3,
 }
 
 func (x Texture) Enum() *Texture {

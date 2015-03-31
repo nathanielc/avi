@@ -55,4 +55,3 @@ func LoadPartsFromData(in []byte) (*PartsConf, error) {
 	}
 	return &conf, nil
 }
-

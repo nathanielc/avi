@@ -2,7 +2,9 @@ package head;
 
 enum Texture {
     SHIP = 0;
-    PROJECTILE = 1;
+    ASTEROID = 1;
+    CONTROL_POINT = 2;
+    PROJECTILE = 3;
 }
 
 message Vector {

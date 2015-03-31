@@ -21,12 +21,18 @@ func NewStream(out io.Writer) *Stream {
 	}
 }
 
-func (s *Stream) SendFrame(ships []*shipT, projs []*projectile) {
+func (s *Stream) SendFrame(ships []*shipT, projs []*projectile, astds []*asteroid, ctlps []*controlPoint) {
 	frame := &head.Frame{
 		Object: make([]*head.Object, 0, len(ships)+len(projs)),
 	}
 	for _, ship := range ships {
 		appendObject(frame, ship, head.Texture_SHIP, ship.texture)
+	}
+	for _, ctlp := range ctlps {
+		appendObject(frame, ctlp, head.Texture_CONTROL_POINT, "")
+	}
+	for _, astd := range astds {
+		appendObject(frame, astd, head.Texture_ASTEROID, "")
 	}
 	for _, proj := range projs {
 		appendObject(frame, proj, head.Texture_PROJECTILE, "")

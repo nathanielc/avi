@@ -84,9 +84,18 @@ class World(object):
                 if obj.tex == 0:
                     model.setScale(obj.radius)
                     tex = loader.loadTexture("models/%s.jpg" % obj.tex_custom)
-                else:
+                elif obj.tex == 1:
+                    model.setScale(obj.radius)
+                    tex = loader.loadTexture("models/asteroid.jpg")
+                elif obj.tex == 2:
+                    model.setScale(obj.radius)
+                    tex = loader.loadTexture("models/control_point.jpg")
+                elif obj.tex == 3:
                     tex = loader.loadTexture("models/steel.jpg")
                     model.setScale(obj.radius*10)
+                else:
+                    print "Invalid texture", obj
+                    exit(1)
                 model.setTexture(tex, 1)
                 model.reparentTo(render)
                 self.objs[name] = model
@@ -120,7 +129,7 @@ class World(object):
         # Parent the sky model to the render node so that the sky is rendered
         self.sky.reparentTo(render)
         # Scale the size of the sky.
-        self.sky.setScale(1000)
+        self.sky.setScale(5000)
 
     def cameraTask(self, task):
 

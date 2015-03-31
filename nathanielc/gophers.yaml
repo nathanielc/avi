@@ -1,6 +1,6 @@
 ---
 name: gophers
-center: [-100, -100, -100]
+center: [-400, -100, -100]
 ships:
   - name: jim
     position: [0, 0, 0]
@@ -23,7 +23,16 @@ ship_types:
     - name: rocket
       type: thruster
       position: [-1,0,0]
-    - name: pea-shooter
+    - name: singularity-cannon
+      type: weapon
+      position: [0,1,0]
+    - name: singularity-cannon
+      type: weapon
+      position: [0,1,0]
+    - name: singularity-cannon
+      type: weapon
+      position: [0,1,0]
+    - name: singularity-cannon
       type: weapon
       position: [0,1,0]
     - name: antenna

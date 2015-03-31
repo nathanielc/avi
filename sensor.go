@@ -6,8 +6,7 @@ import (
 	"math"
 )
 
-
-const shipDetectionThreshold = 0.0
+const detectionThreshold = 0.0
 
 var NoScanAvalaible = errors.New("No scan available")
 
@@ -36,7 +35,7 @@ func NewSensor001(pos mgl64.Vec3) *Sensor {
 			},
 		},
 		energy: 1,
-		power: 1,
+		power:  1,
 	}
 }
 
@@ -55,10 +54,11 @@ func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 }
 
 type scanResult struct {
-	Position mgl64.Vec3
-	Velocity mgl64.Vec3
-	Health   float64
-	Ships    map[int64]Object
+	Position      mgl64.Vec3
+	Velocity      mgl64.Vec3
+	Health        float64
+	Ships         map[int64]Object
+	ControlPoints map[int64]Object
 }
 
 func (self *Sensor) Scan() (*scanResult, error) {
@@ -73,10 +73,11 @@ func (self *Sensor) Scan() (*scanResult, error) {
 	}
 	scan := self.lastScan
 	self.lastScan = &scanResult{
-		Position: self.ship.position,
-		Velocity: self.ship.velocity,
-		Health:   self.ship.health,
-		Ships: self.searchShips(),
+		Position:      self.ship.position,
+		Velocity:      self.ship.velocity,
+		Health:        self.ship.health,
+		Ships:         self.searchShips(),
+		ControlPoints: self.searchCPs(),
 	}
 	if scan == nil {
 		return nil, NoScanAvalaible
@@ -95,12 +96,27 @@ func (self *Sensor) searchShips() map[int64]Object {
 
 		i := self.intensity(distance)
 
-		if i > shipDetectionThreshold {
+		if i > detectionThreshold {
 			ships[ship.GetID()] = ship
 		}
 	}
 
 	return ships
+}
+
+func (self *Sensor) searchCPs() map[int64]Object {
+	ctlps := make(map[int64]Object, len(self.ship.sim.ctlps))
+	for _, ctlp := range self.ship.sim.ctlps {
+		distance := ctlp.position.Sub(self.ship.position).Len()
+
+		i := self.intensity(distance)
+
+		if i > detectionThreshold {
+			ctlps[ctlp.GetID()] = ctlp
+		}
+	}
+
+	return ctlps
 }
 
 func (self *Sensor) intensity(r float64) float64 {

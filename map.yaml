@@ -1,11 +1,21 @@
 ---
 radius: 1e6
-# Currently asteroids are not added to the map
+control_points:
+  - mass: 1e6
+    radius: 1e1
+    position: [-500, 0 , 0]
+    points: 1
+    influence: 100
+  - mass: 1e6
+    radius: 1e1
+    position: [500, 0 , 0]
+    points: 2
+    influence: 100
 asteroids:
-  - mass: 1e3
-    radius: 1e3
-    position: [0, 100, -1000]
-  - mass: 1e5
-    radius: 4e3
-    position: [0, -100, 1000]
+  - mass: 1e6
+    radius: 6e1
+    position: [-250, 50, 0]
+  - mass: 1e6
+    radius: 6e1
+    position: [250, 50, 0]
 

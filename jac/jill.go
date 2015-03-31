@@ -31,7 +31,7 @@ func NewJim() avi.Ship {
 func (self *JimSpaceShip) Tick(tick int64) {
 	if self.navComputer == nil {
 		self.navComputer = nav.NewNav(self.Thrusters)
-		
+
 	}
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)

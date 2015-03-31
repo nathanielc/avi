@@ -14,7 +14,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='head/head.proto',
   package='head',
-  serialized_pb='\n\x0fhead/head.proto\x12\x04head\")\n\x06Vector\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01y\x18\x02 \x02(\x02\x12\t\n\x01z\x18\x03 \x02(\x02\"o\n\x06Object\x12\n\n\x02ID\x18\x01 \x02(\x03\x12\x19\n\x03pos\x18\x02 \x02(\x0b\x32\x0c.head.Vector\x12\x0e\n\x06radius\x18\x03 \x02(\x02\x12\x1a\n\x03tex\x18\x04 \x02(\x0e\x32\r.head.Texture\x12\x12\n\ntex_custom\x18\x05 \x01(\t\"%\n\x05\x46rame\x12\x1c\n\x06object\x18\x01 \x03(\x0b\x32\x0c.head.Object\"$\n\x06Stream\x12\x1a\n\x05\x66rame\x18\x02 \x03(\x0b\x32\x0b.head.Frame*#\n\x07Texture\x12\x08\n\x04SHIP\x10\x00\x12\x0e\n\nPROJECTILE\x10\x01')
+  serialized_pb='\n\x0fhead/head.proto\x12\x04head\")\n\x06Vector\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01y\x18\x02 \x02(\x02\x12\t\n\x01z\x18\x03 \x02(\x02\"o\n\x06Object\x12\n\n\x02ID\x18\x01 \x02(\x03\x12\x19\n\x03pos\x18\x02 \x02(\x0b\x32\x0c.head.Vector\x12\x0e\n\x06radius\x18\x03 \x02(\x02\x12\x1a\n\x03tex\x18\x04 \x02(\x0e\x32\r.head.Texture\x12\x12\n\ntex_custom\x18\x05 \x01(\t\"%\n\x05\x46rame\x12\x1c\n\x06object\x18\x01 \x03(\x0b\x32\x0c.head.Object\"$\n\x06Stream\x12\x1a\n\x05\x66rame\x18\x02 \x03(\x0b\x32\x0b.head.Frame*D\n\x07Texture\x12\x08\n\x04SHIP\x10\x00\x12\x0c\n\x08\x41STEROID\x10\x01\x12\x11\n\rCONTROL_POINT\x10\x02\x12\x0e\n\nPROJECTILE\x10\x03')
 
 _TEXTURE = _descriptor.EnumDescriptor(
   name='Texture',
@@ -27,19 +27,29 @@ _TEXTURE = _descriptor.EnumDescriptor(
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='PROJECTILE', index=1, number=1,
+      name='ASTEROID', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CONTROL_POINT', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PROJECTILE', index=3, number=3,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=258,
-  serialized_end=293,
+  serialized_end=326,
 )
 
 Texture = enum_type_wrapper.EnumTypeWrapper(_TEXTURE)
 SHIP = 0
-PROJECTILE = 1
+ASTEROID = 1
+CONTROL_POINT = 2
+PROJECTILE = 3
 
 
 

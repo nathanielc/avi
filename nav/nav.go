@@ -57,7 +57,6 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 		return nil
 	}
 
-
 	desiredVel := delta.Normalize().Mul(nav.next.MaxSpeed)
 
 	accerlation := desiredVel.Sub(vel)
