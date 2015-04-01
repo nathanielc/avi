@@ -14,7 +14,6 @@ const timePerTick = 1e-2
 const impulseToDamage = 1.1
 
 var maxTicks = flag.Int("ticks", -1, "Optional maximum ticks to simulate")
-var maxScore = flag.Int("score", 1e6, "Winning score. First fleet to achieve this score wins.")
 var streamRate = flag.Int("rate", 10, "Every 'rate' ticks emit a frame")
 
 type Simulation struct {
@@ -28,7 +27,8 @@ type Simulation struct {
 	sectorSize int64
 	//Number of ships alive from each fleet
 	survivors map[string]int
-	score     map[string]float64
+	scores     map[string]float64
+	maxScore  float64
 	//Available parts
 	availableParts *PartsConf
 	//ID counter
@@ -42,7 +42,8 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 		radius:         mp.Radius,
 		availableParts: parts,
 		survivors:      make(map[string]int),
-		score:          make(map[string]float64),
+		scores:          make(map[string]float64),
+		maxScore:       mp.Score,
 		rate:           int64(*streamRate),
 		stream:         stream,
 	}
@@ -63,11 +64,12 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 
 		for _, shipConf := range fleet.Ships {
 
-			glog.Infof("Adding ship %s for fleet %s", shipConf.Pilot, fleet.Name)
+			glog.Infof("Adding ship with pilot %s for fleet %s", shipConf.Pilot, fleet.Name)
 			pilot := getPilot(shipConf.Pilot)
 			if pilot == nil {
 				return nil, errors.New(fmt.Sprintf("Unknown pilot '%s'", shipConf.Pilot))
 			}
+			pilot.JoinFleet(fleet.Name)
 
 			relativePos, err := sliceToVec(shipConf.Position)
 			if err != nil {
@@ -152,21 +154,20 @@ func (sim *Simulation) Start() {
 	glog.Infoln("Starting AVI Simulation")
 
 	for fleet := range sim.survivors {
-		sim.score[fleet] = 0.0
+		sim.scores[fleet] = 0.0
 	}
 
 	fleet, score := sim.loop()
 
-	glog.Infoln("All scores:", sim.score)
+	glog.Infoln("All scores:", sim.scores)
 	glog.Infof("%s win with %f @ tick: %d!!!", fleet, score, sim.tick)
 }
 
 func (sim *Simulation) loop() (string, float64) {
 	cont := true
 	score := 0.0
-	maxScore := float64(*maxScore)
 	maxTicks := int64(*maxTicks)
-	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < maxScore) {
+	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < sim.maxScore) {
 		score, cont = sim.doTick()
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
 			sim.stream.SendFrame(sim.ships, sim.projs, sim.astds, sim.ctlps)
@@ -174,7 +175,7 @@ func (sim *Simulation) loop() (string, float64) {
 	}
 	var fleet string
 	score = 0.0
-	for f, s := range sim.score {
+	for f, s := range sim.scores {
 		if s > score {
 			fleet = f
 			score = s
@@ -198,9 +199,9 @@ func (sim *Simulation) scoreFleets() float64 {
 		for _, ship := range sim.ships {
 			distance := cp.position.Sub(ship.position).Len()
 			if distance < cp.influence {
-				sim.score[ship.fleet] += cp.points * timePerTick
+				sim.scores[ship.fleet] += cp.points * timePerTick
 			}
-			if s := sim.score[ship.fleet]; s > score {
+			if s := sim.scores[ship.fleet]; s > score {
 				score = s
 			}
 		}

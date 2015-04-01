@@ -8,6 +8,7 @@ import (
 
 type MapConf struct {
 	Radius        int64
+	Score         float64
 	Asteroids     []asteroidConf
 	ControlPoints []controlPointConf `yaml:"control_points"`
 }

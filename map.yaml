@@ -1,5 +1,6 @@
 ---
 radius: 1e6
+score: 50
 control_points:
   - mass: 1e6
     radius: 1e1

@@ -6,8 +6,8 @@ import (
 )
 
 func BenchmarkLoop(b *testing.B) {
-	ship0 := newOneDirShip(mgl64.Vec3{-1, -1, -1})
-	ship1 := newOneDirShip(mgl64.Vec3{1, 1, 1})
+	ship0 := newOneDirPilot(mgl64.Vec3{-1, -1, -1})
+	ship1 := newOneDirPilot(mgl64.Vec3{1, 1, 1})
 	sim, err := NewSimulation(&MapConf{
 		Radius: 1000,
 	},
@@ -26,23 +26,23 @@ func BenchmarkLoop(b *testing.B) {
 	}
 }
 
-// Single Direction ship
-type oneDirShip struct {
+// Single Direction pilot
+type oneDirPilot struct {
 	engine   *Engine
 	thruster *Thruster
 	dir      mgl64.Vec3
 }
 
-func newOneDirShip(dir mgl64.Vec3) Ship {
-	return &oneDirShip{dir: dir}
+func newOneDirPilot(dir mgl64.Vec3) Pilot {
+	return &oneDirPilot{dir: dir}
 }
 
-func (self *oneDirShip) Tick() {
+func (self *oneDirPilot) Tick(tick int64) {
 	self.engine.PowerOn(1.0)
-	self.thruster.Thrust(self.dir, 1.0)
+	self.thruster.Thrust(self.dir)
 }
 
-func (self *oneDirShip) LinkParts(shipParts []ShipPartConf, availableParts *PartsConf) ([]Part, error) {
+func (self *oneDirPilot) LinkParts(shipParts []ShipPartConf, availableParts *PartsConf) ([]Part, error) {
 	self.engine = NewEngine001(mgl64.Vec3{0, 0, 1})
 
 	self.thruster = NewThruster001(mgl64.Vec3{0, -1, 0})

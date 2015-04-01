@@ -6,37 +6,37 @@ ships:
     position: [0, 0, 0]
     parts: *DUCK_PARTS
     texture: vegetables
-    hull_strength: 1.5
+    hull_strength: 150
   - pilot: duck
     position: [-100, 100, -100]
     parts: *DUCK_PARTS
     texture: vegetables
-    hull_strength: 1.5
+    hull_strength: 150
   - pilot: duck
     position: [-100, 100, 0]
     parts: *DUCK_PARTS
     texture: vegetables
-    hull_strength: 1.5
+    hull_strength: 150
   - pilot: duck
     position: [-100, 100, 100]
     parts: *DUCK_PARTS
     texture: vegetables
-    hull_strength: 1.5
+    hull_strength: 150
   - pilot: duck
     position: [-100, 0, 100]
     parts: *DUCK_PARTS
     texture: vegetables
-    hull_strength: 1.5
+    hull_strength: 150
   - pilot: duck
     position: [-100, -100, 100]
     parts: *DUCK_PARTS
     texture: vegetables
-    hull_strength: 1.5
+    hull_strength: 150
   - pilot: duck
     position: [-100, -100, 0]
     parts: *DUCK_PARTS
     texture: vegetables
-    hull_strength: 1.5
+    hull_strength: 150
 
 
 

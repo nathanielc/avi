@@ -6,10 +6,15 @@ import (
 )
 
 type GenericPilot struct {
+	Fleet     string
 	Engines   []*Engine
 	Thrusters []*Thruster
 	Weapons   []*Weapon
 	Sensors   []*Sensor
+}
+
+func (self *GenericPilot) JoinFleet(fleet string) {
+	self.Fleet = fleet
 }
 
 func (self *GenericPilot) LinkParts(shipParts []ShipPartConf, availableParts *PartsConf) ([]Part, error) {

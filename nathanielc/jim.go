@@ -101,12 +101,12 @@ func (self *JimPilot) Tick(tick int64) {
 		glog.V(3).Infoln("Failed to navigate", err)
 		return
 	}
-	glog.V(3).Infoln("Jim", scan.Health, scan.Position, scan.Velocity.Len(), len(scan.Ships))
+	glog.V(3).Infoln("Jim", scan.Health, scan.Position, scan.Velocity.Len())
 	// Find Control Point
-	if !exists(self.ctlp, scan.ControlPoints) {
+	if !ctlpExists(self.ctlp, scan.ControlPoints) {
 		distance := 0.0
 		for id, ctlp := range scan.ControlPoints {
-			d := ctlp.GetPosition().Sub(scan.Position).Len()
+			d := ctlp.Position.Sub(scan.Position).Len()
 			if d < distance || distance == 0 {
 				distance = d
 				self.ctlp = id
@@ -114,44 +114,52 @@ func (self *JimPilot) Tick(tick int64) {
 		}
 	}
 
-	if !exists(self.ctlp, scan.ControlPoints) {
+	if !ctlpExists(self.ctlp, scan.ControlPoints) {
 		return
 	}
 
 	ctlp := scan.ControlPoints[self.ctlp]
 
-	bias := mgl64.Vec3{-1, 0, 0}
+	distance := ctlp.Position.Sub(scan.Position).Len()
+	tolerance := (distance - ctlp.Influence) / 2.0
+	if tolerance < 10 {
+		tolerance = 30
+	}
+	bias := mgl64.Vec3{0, 0, 1}
 	wp := &nav.Waypoint{
-		Position:  ctlp.GetPosition().Add(bias.Mul(ctlp.GetRadius() + 50)),
-		MaxSpeed:  10,
-		Tolerance: 30,
+		Position:  ctlp.Position.Add(bias.Mul(ctlp.Radius + scan.Radius + tolerance)),
+		MaxSpeed:  tolerance * 0.4,
+		Tolerance: tolerance,
 	}
 	self.navComputer.SetWaypoint(wp)
 
 	//Find target ship
-	if !exists(self.target, scan.Ships) {
+	if !shipExists(self.target, scan.Ships) {
 		distance := 0.0
 		for id, ship := range scan.Ships {
-			d := ship.GetPosition().Sub(scan.Position).Len()
+			if ship.Fleet == self.Fleet {
+				continue
+			}
+			d := ship.Position.Sub(scan.Position).Len()
 			if d < distance || distance == 0 {
 				distance = d
 				self.target = id
 			}
 		}
 	}
-	if !exists(self.target, scan.Ships) {
+	if !shipExists(self.target, scan.Ships) {
 		return
 	}
 
-	targetPos := scan.Ships[self.target].GetPosition()
-	targetVel := scan.Ships[self.target].GetVelocity()
+	targetPos := scan.Ships[self.target].Position
+	targetVel := scan.Ships[self.target].Velocity
 
 	if tick%self.cooldownTicks == 0 {
 		for _, weapon := range self.Weapons {
 			vel := weapon.GetAmmoVel()
 			time := scan.Position.Sub(targetPos).Len() / vel
 
-			dir := targetPos.Add(targetVel.Mul(time*1.5)).Sub(scan.Position).Sub(scan.Velocity.Mul(time))
+			dir := targetPos.Add(targetVel.Mul(time*1.1)).Sub(scan.Position).Sub(scan.Velocity.Mul(time))
 
 			err := weapon.Fire(dir)
 			if err != nil {
@@ -162,7 +170,12 @@ func (self *JimPilot) Tick(tick int64) {
 	}
 }
 
-func exists(target int64, ships map[int64]avi.Object) bool {
+func ctlpExists(target int64, ctlps map[int64]avi.CtlPSR) bool {
+	_, ok := ctlps[target]
+	return ok
+}
+
+func shipExists(target int64, ships map[int64]avi.ShipSR) bool {
 	_, ok := ships[target]
 	return ok
 }

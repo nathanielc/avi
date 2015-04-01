@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	avi.RegisterPilot("jill", NewJim)
+	avi.RegisterPilot("jill", NewJill)
 }
 
 type JillPilot struct {
@@ -20,7 +20,7 @@ type JillPilot struct {
 	target        int64
 }
 
-func NewJim() avi.Pilot {
+func NewJill() avi.Pilot {
 	return &JillPilot{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
@@ -52,7 +52,10 @@ func (self *JillPilot) Tick(tick int64) {
 	if !targetExists(self.target, scan.Ships) {
 		distance := 0.0
 		for id, ship := range scan.Ships {
-			d := ship.GetPosition().Sub(scan.Position).Len()
+			if ship.Fleet == self.Fleet {
+				continue
+			}
+			d := ship.Position.Sub(scan.Position).Len()
 			if d < distance || distance == 0 {
 				distance = d
 				self.target = id
@@ -62,8 +65,8 @@ func (self *JillPilot) Tick(tick int64) {
 	if !targetExists(self.target, scan.Ships) {
 		return
 	}
-	targetPos := scan.Ships[self.target].GetPosition()
-	targetVel := scan.Ships[self.target].GetVelocity()
+	targetPos := scan.Ships[self.target].Position
+	targetVel := scan.Ships[self.target].Velocity
 
 	wp := &nav.Waypoint{
 		Position:  targetPos,
@@ -88,7 +91,7 @@ func (self *JillPilot) Tick(tick int64) {
 	}
 }
 
-func targetExists(target int64, ships map[int64]avi.Object) bool {
+func targetExists(target int64, ships map[int64]avi.ShipSR) bool {
 	_, ok := ships[target]
 	return ok
 }

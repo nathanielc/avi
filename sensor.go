@@ -15,6 +15,7 @@ type Sensor struct {
 	energy   float64
 	power    float64
 	lastScan *scanResult
+	messages map[int64][]byte
 }
 
 // Conf format for loading engines from a file
@@ -56,9 +57,25 @@ func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 type scanResult struct {
 	Position      mgl64.Vec3
 	Velocity      mgl64.Vec3
+	Radius        float64
 	Health        float64
-	Ships         map[int64]Object
-	ControlPoints map[int64]Object
+	Ships         map[int64]ShipSR
+	ControlPoints map[int64]CtlPSR
+}
+
+type ShipSR struct {
+	Position mgl64.Vec3
+	Velocity mgl64.Vec3
+	Radius   float64
+	Fleet    string
+}
+
+type CtlPSR struct {
+	Position  mgl64.Vec3
+	Velocity  mgl64.Vec3
+	Radius    float64
+	Points    float64
+	Influence float64
 }
 
 func (self *Sensor) Scan() (*scanResult, error) {
@@ -75,6 +92,7 @@ func (self *Sensor) Scan() (*scanResult, error) {
 	self.lastScan = &scanResult{
 		Position:      self.ship.position,
 		Velocity:      self.ship.velocity,
+		Radius:        self.ship.radius,
 		Health:        self.ship.health,
 		Ships:         self.searchShips(),
 		ControlPoints: self.searchCPs(),
@@ -85,10 +103,10 @@ func (self *Sensor) Scan() (*scanResult, error) {
 	return scan, nil
 }
 
-func (self *Sensor) searchShips() map[int64]Object {
-	ships := make(map[int64]Object, len(self.ship.sim.ships))
+func (self *Sensor) searchShips() map[int64]ShipSR {
+	ships := make(map[int64]ShipSR, len(self.ship.sim.ships))
 	for _, ship := range self.ship.sim.ships {
-		if ship == self.ship || ship.fleet == self.ship.fleet {
+		if ship == self.ship {
 			continue
 		}
 
@@ -97,22 +115,33 @@ func (self *Sensor) searchShips() map[int64]Object {
 		i := self.intensity(distance)
 
 		if i > detectionThreshold {
-			ships[ship.GetID()] = ship
+			ships[ship.GetID()] = ShipSR{
+				Fleet:    ship.fleet,
+				Position: ship.position,
+				Velocity: ship.velocity,
+				Radius:   ship.radius,
+			}
 		}
 	}
 
 	return ships
 }
 
-func (self *Sensor) searchCPs() map[int64]Object {
-	ctlps := make(map[int64]Object, len(self.ship.sim.ctlps))
+func (self *Sensor) searchCPs() map[int64]CtlPSR {
+	ctlps := make(map[int64]CtlPSR, len(self.ship.sim.ctlps))
 	for _, ctlp := range self.ship.sim.ctlps {
 		distance := ctlp.position.Sub(self.ship.position).Len()
 
 		i := self.intensity(distance)
 
 		if i > detectionThreshold {
-			ctlps[ctlp.GetID()] = ctlp
+			ctlps[ctlp.GetID()] = CtlPSR{
+				Position:  ctlp.position,
+				Velocity:  ctlp.velocity,
+				Radius:    ctlp.radius,
+				Points:    ctlp.points,
+				Influence: ctlp.influence,
+			}
 		}
 	}
 

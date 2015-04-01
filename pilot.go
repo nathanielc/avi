@@ -1,8 +1,9 @@
 package avi
 
 type Pilot interface {
-	Tick(int64)
+	JoinFleet(fleet string)
 	LinkParts([]ShipPartConf, *PartsConf) ([]Part, error)
+	Tick(int64)
 }
 
 type pilotFactory func() Pilot

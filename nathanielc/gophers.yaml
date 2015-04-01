@@ -6,12 +6,12 @@ ships:
     position: [0, 0, 0]
     parts: *JIM_PARTS
     texture: cookie_monster
-    hull_strength: 1.5
+    hull_strength: 150
   - pilot: jim
     position: [-100, -100, -100]
     parts: *JIM_PARTS
     texture: cookie_monster
-    hull_strength: 1.5
+    hull_strength: 150
 
 
 ship_types:
