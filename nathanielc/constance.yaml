@@ -1,0 +1,63 @@
+---
+name: constance
+center: [0, 0, 0]
+ships:
+  - pilot: constance
+    position: [0, 0, 0]
+    texture: vegetables
+    hull_strength: 150
+    parts:
+      - name: nuclear
+        type: engine
+        position: [0,0,0]
+      - name: rocket
+        type: thruster
+        position: [1,0,0]
+      - name: rocket
+        type: thruster
+        position: [-1,0,0]
+      - name: antenna
+        type: sensor
+        position: [0,0,-1]
+  #- pilot: constance
+  #  position: [0, 0, -100]
+  #  texture: vegetables
+  #  hull_strength: 150
+  #  parts:
+  #    - name: nuclear
+  #      type: engine
+  #      position: [0,0,0]
+  #    - name: rocket
+  #      type: thruster
+  #      position: [1,0,0]
+  #    - name: rocket
+  #      type: thruster
+  #      position: [-1,0,0]
+  #- pilot: constance
+  #  position: [0, 0, -200]
+  #  texture: vegetables
+  #  hull_strength: 150
+  #  parts:
+  #    - name: nuclear
+  #      type: engine
+  #      position: [0,0,0]
+  #    - name: rocket
+  #      type: thruster
+  #      position: [1,0,0]
+  #    - name: rocket
+  #      type: thruster
+  #      position: [-1,0,0]
+  #- pilot: constance
+  #  position: [0, 0, -300]
+  #  texture: vegetables
+  #  hull_strength: 150
+  #  parts:
+  #    - name: nuclear
+  #      type: engine
+  #      position: [0,0,0]
+  #    - name: rocket
+  #      type: thruster
+  #      position: [1,0,0]
+  #    - name: rocket
+  #      type: thruster
+  #      position: [-1,0,0]

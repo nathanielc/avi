@@ -9,7 +9,7 @@ import (
 )
 
 const minSectorSize = 100
-const timePerTick = 1e-2
+const TimePerTick = 1e-2
 
 const impulseToDamage = 1.1
 
@@ -170,7 +170,7 @@ func (sim *Simulation) loop() (string, float64) {
 	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < sim.maxScore) {
 		score, cont = sim.doTick()
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
-			sim.stream.SendFrame(sim.ships, sim.projs, sim.astds, sim.ctlps)
+			sim.stream.SendFrame(sim.scores, sim.ships, sim.projs, sim.astds, sim.ctlps)
 		}
 	}
 	var fleet string
@@ -199,7 +199,7 @@ func (sim *Simulation) scoreFleets() float64 {
 		for _, ship := range sim.ships {
 			distance := cp.position.Sub(ship.position).Len()
 			if distance < cp.influence {
-				sim.scores[ship.fleet] += cp.points * timePerTick
+				sim.scores[ship.fleet] += cp.points * TimePerTick
 			}
 			if s := sim.scores[ship.fleet]; s > score {
 				score = s
@@ -233,19 +233,19 @@ func (sim *Simulation) propagateObjects() {
 			ship.GetVelocity(),
 			ship.GetRadius(),
 		)
-		ship.position = ship.position.Add(ship.velocity.Mul(timePerTick))
+		ship.position = ship.position.Add(ship.velocity.Mul(TimePerTick))
 		if r := int64(ship.GetRadius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
 	}
 	for _, inrt := range sim.inrts {
-		inrt.setPosition(inrt.GetPosition().Add(inrt.GetVelocity().Mul(timePerTick)))
+		inrt.setPosition(inrt.GetPosition().Add(inrt.GetVelocity().Mul(TimePerTick)))
 		if r := int64(inrt.GetRadius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
 	}
 	for _, proj := range sim.projs {
-		proj.position = proj.position.Add(proj.velocity.Mul(timePerTick))
+		proj.position = proj.position.Add(proj.velocity.Mul(TimePerTick))
 		if r := int64(proj.GetRadius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}

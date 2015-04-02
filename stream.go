@@ -21,9 +21,16 @@ func NewStream(out io.Writer) *Stream {
 	}
 }
 
-func (s *Stream) SendFrame(ships []*shipT, projs []*projectile, astds []*asteroid, ctlps []*controlPoint) {
+func (s *Stream) SendFrame(scores map[string]float64, ships []*shipT, projs []*projectile, astds []*asteroid, ctlps []*controlPoint) {
 	frame := &head.Frame{
 		Object: make([]*head.Object, 0, len(ships)+len(projs)),
+	}
+	for fleet, score := range scores {
+		s := float32(score)
+		frame.Score = append(frame.Score, &head.Score{
+			Fleet: proto.String(fleet),
+			Score: &s,
+		})
 	}
 	for _, ship := range ships {
 		appendObject(frame, ship, head.Texture_SHIP, ship.texture)

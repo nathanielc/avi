@@ -1,6 +1,6 @@
 ---
 name: dogs
-center: [100, -100, 100]
+center: [100, -100, -100]
 ships:
   - pilot: jim
     position: [0, 0, 0]

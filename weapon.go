@@ -40,7 +40,7 @@ func NewWeapon001(pos mgl64.Vec3) *Weapon {
 		ammoVelocity:  1000,
 		ammoMass:      1,
 		ammoRadius:    ammoRadius,
-		cooldownTicks: int64(5.0 / timePerTick),
+		cooldownTicks: int64(5.0 / TimePerTick),
 	}
 }
 
@@ -57,7 +57,7 @@ func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 		ammoVelocity:  conf.AmmoVelocity,
 		ammoMass:      conf.AmmoMass,
 		ammoRadius:    ammoRadius,
-		cooldownTicks: int64(conf.Cooldown / timePerTick),
+		cooldownTicks: int64(conf.Cooldown / TimePerTick),
 	}
 }
 

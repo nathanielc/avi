@@ -29,6 +29,7 @@ class World(object):
         self.frame = 0
         self.frames = []
         self.objs = {}
+        self.scores = {}
 
         self.loadFrames(frames_src)
         self.loadMap()
@@ -103,7 +104,10 @@ class World(object):
                 model = self.objs[name]
 
             pos = obj.pos
-            model.setPos(pos.x, pos.y, pos.z)
+            try:
+                model.setPos(pos.x, pos.y, pos.z)
+            except:
+                pass
 
         # Remove objects that are no longer in the frame
         toRemove = []
@@ -114,6 +118,24 @@ class World(object):
 
         for obj in toRemove:
             del self.objs[obj]
+
+        # Update Scores
+        ypos = -0.1
+        for score in frame.score:
+            fleet = score.fleet
+            if fleet not in self.scores:
+                self.scores[fleet] = OnscreenText(
+                    text="",
+                    parent=base.a2dTopRight,
+                    align=TextNode.A_left,
+                    style=1,
+                    fg=(0.2, 0.8, 0, 1),
+                    pos=(-0.5, ypos),
+                    scale=.07,
+                )
+
+                ypos -=  0.1
+            self.scores[fleet].setText("%s\t%d" % (fleet, score.score))
 
         return task.cont
 

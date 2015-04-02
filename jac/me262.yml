@@ -1,6 +1,6 @@
 ---
 name: me262
-center: [-300, -150, 200]
+center: [300, 150, 200]
 ships:
   - pilot: jill
     position: [0, 0, 0]

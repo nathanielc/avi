@@ -11,6 +11,7 @@ It is generated from these files:
 It has these top-level messages:
 	Vector
 	Object
+	Score
 	Frame
 	Stream
 */
@@ -142,14 +143,46 @@ func (m *Object) GetTexCustom() string {
 	return ""
 }
 
+type Score struct {
+	Fleet            *string  `protobuf:"bytes,1,req,name=fleet" json:"fleet,omitempty"`
+	Score            *float32 `protobuf:"fixed32,2,req,name=score" json:"score,omitempty"`
+	XXX_unrecognized []byte   `json:"-"`
+}
+
+func (m *Score) Reset()         { *m = Score{} }
+func (m *Score) String() string { return proto.CompactTextString(m) }
+func (*Score) ProtoMessage()    {}
+
+func (m *Score) GetFleet() string {
+	if m != nil && m.Fleet != nil {
+		return *m.Fleet
+	}
+	return ""
+}
+
+func (m *Score) GetScore() float32 {
+	if m != nil && m.Score != nil {
+		return *m.Score
+	}
+	return 0
+}
+
 type Frame struct {
-	Object           []*Object `protobuf:"bytes,1,rep,name=object" json:"object,omitempty"`
+	Score            []*Score  `protobuf:"bytes,1,rep,name=score" json:"score,omitempty"`
+	Object           []*Object `protobuf:"bytes,2,rep,name=object" json:"object,omitempty"`
 	XXX_unrecognized []byte    `json:"-"`
 }
 
 func (m *Frame) Reset()         { *m = Frame{} }
 func (m *Frame) String() string { return proto.CompactTextString(m) }
 func (*Frame) ProtoMessage()    {}
+
+func (m *Frame) GetScore() []*Score {
+	if m != nil {
+		return m.Score
+	}
+	return nil
+}
 
 func (m *Frame) GetObject() []*Object {
 	if m != nil {

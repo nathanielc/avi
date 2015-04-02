@@ -14,8 +14,7 @@ type Sensor struct {
 	partT
 	energy   float64
 	power    float64
-	lastScan *scanResult
-	messages map[int64][]byte
+	lastScan *ScanResult
 }
 
 // Conf format for loading engines from a file
@@ -54,7 +53,7 @@ func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 	}
 }
 
-type scanResult struct {
+type ScanResult struct {
 	Position      mgl64.Vec3
 	Velocity      mgl64.Vec3
 	Radius        float64
@@ -78,7 +77,7 @@ type CtlPSR struct {
 	Influence float64
 }
 
-func (self *Sensor) Scan() (*scanResult, error) {
+func (self *Sensor) Scan() (*ScanResult, error) {
 	if self.used {
 		return nil, errors.New("Already used sensor this tick")
 	}
@@ -89,7 +88,7 @@ func (self *Sensor) Scan() (*scanResult, error) {
 		return nil, err
 	}
 	scan := self.lastScan
-	self.lastScan = &scanResult{
+	self.lastScan = &ScanResult{
 		Position:      self.ship.position,
 		Velocity:      self.ship.velocity,
 		Radius:        self.ship.radius,

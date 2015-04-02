@@ -135,7 +135,7 @@ func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
 }
 
 func (ship *shipT) ApplyAcc(dir mgl64.Vec3) {
-	ship.velocity = ship.velocity.Add(dir.Mul(timePerTick))
+	ship.velocity = ship.velocity.Add(dir.Mul(TimePerTick))
 }
 
 func (ship *shipT) Tick() {

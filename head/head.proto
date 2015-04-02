@@ -21,8 +21,14 @@ message Object {
     optional string tex_custom = 5;
 }
 
+message Score {
+    required string fleet = 1;
+    required float score = 2;
+}
+
 message Frame {
-    repeated Object object = 1;
+    repeated Score score = 1;
+    repeated Object object = 2;
 }
 
 message Stream {
