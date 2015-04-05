@@ -1,0 +1,9 @@
+PASS
+BenchmarkLoop	 2000000	       913 ns/op
+ok  	github.com/nvcook42/avi	2.759s
+?   	github.com/nvcook42/avi/avi	[no test files]
+?   	github.com/nvcook42/avi/head	[no test files]
+?   	github.com/nvcook42/avi/jac	[no test files]
+?   	github.com/nvcook42/avi/nathanielc	[no test files]
+?   	github.com/nvcook42/avi/nav	[no test files]
+?   	github.com/nvcook42/avi/ships	[no test files]

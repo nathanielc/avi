@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
+	"math"
 )
 
 const minSectorSize = 100
 const TimePerTick = 1e-2
+const small = 1e-6
 
-const impulseToDamage = 1.1
+const impulseToDamage = 0.5
 
 var maxTicks = flag.Int("ticks", -1, "Optional maximum ticks to simulate")
 var streamRate = flag.Int("rate", 10, "Every 'rate' ticks emit a frame")
@@ -27,7 +29,7 @@ type Simulation struct {
 	sectorSize int64
 	//Number of ships alive from each fleet
 	survivors map[string]int
-	scores     map[string]float64
+	scores    map[string]float64
 	maxScore  float64
 	//Available parts
 	availableParts *PartsConf
@@ -42,7 +44,7 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 		radius:         mp.Radius,
 		availableParts: parts,
 		survivors:      make(map[string]int),
-		scores:          make(map[string]float64),
+		scores:         make(map[string]float64),
 		maxScore:       mp.Score,
 		rate:           int64(*streamRate),
 		stream:         stream,
@@ -233,19 +235,19 @@ func (sim *Simulation) propagateObjects() {
 			ship.GetVelocity(),
 			ship.GetRadius(),
 		)
-		ship.position = ship.position.Add(ship.velocity.Mul(TimePerTick))
+		sim.propagateObject(ship)
 		if r := int64(ship.GetRadius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
 	}
 	for _, inrt := range sim.inrts {
-		inrt.setPosition(inrt.GetPosition().Add(inrt.GetVelocity().Mul(TimePerTick)))
+		sim.propagateObject(inrt)
 		if r := int64(inrt.GetRadius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
 	}
 	for _, proj := range sim.projs {
-		proj.position = proj.position.Add(proj.velocity.Mul(TimePerTick))
+		sim.propagateObject(proj)
 		if r := int64(proj.GetRadius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
@@ -254,7 +256,15 @@ func (sim *Simulation) propagateObjects() {
 	glog.V(4).Infoln("Sector size", sim.sectorSize)
 }
 
+func (sim *Simulation) propagateObject(obj Object) {
+	obj.setPosition(obj.GetPosition().Add(obj.GetVelocity().Mul(TimePerTick)))
+}
+
 func (sim *Simulation) collideObjects() {
+
+	const OO_COR = 0.7
+	const PO_COR = 0.1
+
 	othrSectors := make(map[int64][]Object)
 	projSectors := make(map[int64][]Object)
 	glog.V(4).Infoln("#ships", len(sim.ships))
@@ -287,25 +297,22 @@ func (sim *Simulation) collideObjects() {
 	glog.V(4).Infoln(othrSectors)
 	glog.V(4).Infoln(projSectors)
 
-	// Group collisions
-	othrOthr := make(map[Object]Object)
-	projOthr := make(map[*projectile]Object)
-
-	// othr-othr
 	for _, sector := range othrSectors {
 		l := len(sector)
+	othrothr:
 		for i := 0; i < l; i++ {
 			othr1 := sector[i]
 			for j := i + 1; j < l; j++ {
 				othr2 := sector[j]
-				if collide(othr1, othr2) {
-					glog.V(4).Infoln("SS")
-					othrOthr[othr1] = othr2
+				if othr1 == othr2 {
+					continue
+				}
+				if collide(othr1, othr2, OO_COR) {
+					continue othrothr
 				}
 			}
 		}
 	}
-	// proj-othr
 	for sectorIndex, othrs := range othrSectors {
 		projs := projSectors[sectorIndex]
 		numothrs := len(othrs)
@@ -315,30 +322,22 @@ func (sim *Simulation) collideObjects() {
 			continue
 		}
 
+	projothr:
 		for i := 0; i < numothrs; i++ {
 			othr := othrs[i]
 			for j := 0; j < numProj; j++ {
 				proj := projs[j].(*projectile)
-				if collide(proj, othr) {
-					glog.V(4).Infoln("PS")
-					projOthr[proj] = othr
+				if collide(proj, othr, PO_COR) {
+					continue projothr
 				}
 			}
 		}
-	}
-
-	for othr1, othr2 := range othrOthr {
-		sim.doOthrOthrCollision(othr1, othr2)
-	}
-
-	for proj, othr := range projOthr {
-		sim.doProjOthrCollision(proj, othr)
 	}
 }
 
 func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
 	pos := obj.GetPosition()
-	radius := obj.GetRadius()
+	radius := obj.GetRadius() + obj.GetVelocity().Len()
 
 	numSectors := sim.radius * 2 / sim.sectorSize
 	numSectors2 := numSectors * numSectors
@@ -365,56 +364,75 @@ func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
 	glog.V(4).Infoln("Placed in sectors:", sectorsList)
 }
 
-func collide(obj1, obj2 Object) bool {
-	distanceApart := obj1.GetPosition().Sub(obj2.GetPosition()).Len()
-	radii := obj1.GetRadius() + obj2.GetRadius()
-	if distanceApart < radii {
-		glog.V(4).Infoln("Collision", obj1.GetPosition(), obj2.GetPosition())
-		return true
+func collide(obj1, obj2 Object, cor float64) bool {
+	// Convert to the moving reference frame of obj2
+	staticPos := obj2.GetPosition()
+	dynamicPos := obj1.GetPosition()
+	dynamicVel := obj1.GetVelocity().Sub(obj2.GetVelocity()).Mul(TimePerTick)
+	maxRange := dynamicVel.Len()
+
+	delta := staticPos.Sub(dynamicPos)
+	distance := delta.Len()
+
+	sumRadii := obj1.GetRadius() + obj2.GetRadius()
+	distanceRadii := distance - sumRadii
+	//Not close enough
+	if maxRange < distanceRadii {
+		return false
+	//} else if distanceRadii < 0 {
+	//	//We have a static collision
+	//	resolveCollision(obj1, obj2, cor)
+	//	return true
 	}
-	return false
+
+	norm := dynamicVel.Normalize()
+
+	direction := norm.Dot(delta)
+	// Going the wrong direction
+	if direction <= 0 {
+		return false
+	}
+
+	f := (distance * distance) - (direction * direction)
+
+	sumRadiiSquared := sumRadii * sumRadii
+	// Still not close enough
+	if f >= sumRadiiSquared {
+		return false
+	}
+
+	t := sumRadiiSquared - f
+
+	// Invalid geometry no collision
+	if t < 0 {
+		return false
+	}
+
+	travelDist := distance - math.Sqrt(t)
+
+	// Didn't get close enough no collision
+	if maxRange < travelDist {
+		return false
+	}
+
+	// We have a collision determine the position of the collision
+	ratio := travelDist / maxRange
+
+	//Place object next to each other at point of collision
+	v1 := obj1.GetVelocity().Mul(ratio * TimePerTick)
+	v2 := obj2.GetVelocity().Mul(ratio * TimePerTick)
+
+	obj1.setPosition(obj1.GetPosition().Add(v1))
+	obj2.setPosition(obj2.GetPosition().Add(v2))
+
+	//Resolve collision
+	resolveCollision(obj1, obj2, cor)
+
+	return true
 }
 
-// Get the collision plane between to spheres
-// This is also the translation distance between the spheres
-func collisionPlane(obj1, obj2 Object) (mgl64.Vec3, mgl64.Vec3) {
-	delta := obj1.GetPosition().Sub(obj2.GetPosition())
-	distanceApart := delta.Len()
-	radii := obj1.GetRadius() + obj2.GetRadius()
-	return delta.Mul((radii - distanceApart) / distanceApart), delta.Normalize()
-}
-
-func (sim *Simulation) doOthrOthrCollision(othr1, othr2 Object) {
-
-	const cor = 0.7
-	mtd, normal := collisionPlane(othr1, othr2)
-	resolveIntersection(othr1, othr2, mtd)
-	resolveCollision(othr1, othr2, normal, cor)
-
-}
-
-func (sim *Simulation) doProjOthrCollision(proj *projectile, othr Object) {
-
-	glog.V(4).Infoln("doPSC")
-	const cor = 0.1
-	mtd, normal := collisionPlane(othr, proj)
-	resolveIntersection(proj, othr, mtd)
-	resolveCollision(proj, othr, normal, cor)
-}
-
-func resolveIntersection(obj1, obj2 Object, mtd mgl64.Vec3) {
-	// inverse mass
-	im1 := 1.0 / obj1.GetMass()
-	im2 := 1.0 / obj2.GetMass()
-
-	pos1 := obj1.GetPosition()
-	pos2 := obj2.GetPosition()
-
-	obj1.setPosition(pos1.Add(mtd.Mul(im1 / (im1 + im2))))
-	obj2.setPosition(pos2.Sub(mtd.Mul(im2 / (im1 + im2))))
-}
-
-func resolveCollision(obj1, obj2 Object, normal mgl64.Vec3, cor float64) {
+func resolveCollision(obj1, obj2 Object, cor float64) {
+	norm := obj1.GetPosition().Sub(obj2.GetPosition()).Normalize()
 
 	// inverse mass
 	im1 := 1.0 / obj1.GetMass()
@@ -425,20 +443,13 @@ func resolveCollision(obj1, obj2 Object, normal mgl64.Vec3, cor float64) {
 	v2 := obj2.GetVelocity()
 
 	v := v1.Sub(v2)
-	vn := v.Dot(normal)
+	vn := v.Dot(norm)
 
-	if vn > 0 {
-		glog.V(4).Infoln("sphere intersecting but moving away from each other already")
-		return
-	}
+	actual := (-(1.0 + cor) * vn) / (im1 + im2)
+	elastic := (-2.0 * vn) / (im1 + im2)
+	impulse := norm.Mul(actual)
 
-	i := (-(1.0 + cor) * vn) / (im1 + im2)
-	ti := (-2.0 * vn) / (im1 + im2)
-	impulse := normal.Mul(i)
-
-	damage := impulseToDamage * (ti - i)
-
-	glog.V(4).Infoln("Damage:", v1, v2, v, ti, i, damage)
+	damage := impulseToDamage * (elastic - actual)
 
 	obj1.setHealth(obj1.GetHealth() - damage)
 	obj2.setHealth(obj2.GetHealth() - damage)

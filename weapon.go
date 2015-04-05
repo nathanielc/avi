@@ -1,8 +1,10 @@
 package avi
 
 import (
+	"fmt"
 	"errors"
 	"github.com/go-gl/mathgl/mgl64"
+	"math"
 )
 
 const ammoRadius = 0.05
@@ -62,6 +64,10 @@ func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 }
 
 func (self *Weapon) Fire(dir mgl64.Vec3) error {
+	if l := dir.Len(); math.IsNaN(l) || l == 0 {
+		err := errors.New(fmt.Sprintf("Invalid direction %s", dir))
+		return err
+	}
 
 	if self.lastshot+self.cooldownTicks > self.ship.sim.tick {
 		return errors.New("Weapon cooling down")

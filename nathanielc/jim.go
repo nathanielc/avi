@@ -151,14 +151,9 @@ func (self *JimPilot) fire(tick int64, scan *avi.ScanResult) {
 				glog.V(3).Infoln("Failed to fire", err)
 			}
 			self.cooldownTicks = weapon.GetCoolDownTicks()
-			self.targetI = velPoint{}
 		}
-	} else {
-		//Track target accerlation
-		if self.targetI.tick == 0 {
-			self.targetI.tick = tick
-			self.targetI.velocity = targetVel
-		}
+		self.targetI.tick = tick
+		self.targetI.velocity = targetVel
 	}
 }
 

@@ -2,6 +2,8 @@ package avi
 
 import (
 	"github.com/go-gl/mathgl/mgl64"
+	"math"
+	"errors"
 )
 
 type Object interface {
@@ -39,6 +41,10 @@ func (o *objectT) GetPosition() mgl64.Vec3 {
 }
 
 func (o *objectT) setPosition(pos mgl64.Vec3) {
+	if math.IsNaN(pos.X()) {
+		err := errors.New("NaN detected")
+		panic(err)
+	}
 	o.position = pos
 }
 
@@ -47,6 +53,10 @@ func (o *objectT) GetVelocity() mgl64.Vec3 {
 }
 
 func (o *objectT) setVelocity(v mgl64.Vec3) {
+	if math.IsNaN(v.X()) {
+		err := errors.New("NaN detected")
+		panic(err)
+	}
 	o.velocity = v
 }
 

@@ -5,7 +5,7 @@ ships:
   - pilot: constance
     position: [0, 0, 0]
     texture: vegetables
-    hull_strength: 150
+    hull_strength: 1500
     parts:
       - name: nuclear
         type: engine

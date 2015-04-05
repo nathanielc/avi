@@ -20,7 +20,7 @@ func NewConstance() avi.Pilot {
 }
 
 func (self *ConstancePilot) Tick(tick int64) {
-	if self.moving > 2000 {
+	if self.moving > 20000 {
 		return
 	}
 
