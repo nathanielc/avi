@@ -45,7 +45,7 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 		availableParts: parts,
 		survivors:      make(map[string]int),
 		scores:         make(map[string]float64),
-		maxScore:       mp.Score,
+		maxScore:       mp.Rules.Score,
 		rate:           int64(*streamRate),
 		stream:         stream,
 	}
@@ -58,6 +58,8 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 		sim.addAsteroid(asteroid)
 	}
 	for i, fleet := range fleets {
+
+		fleetMass := 0.0
 
 		if i == len(mp.StartingPoints) {
 			err := errors.New(fmt.Sprintf("Too many fleets for the map, only %d fleets allowed", len(mp.StartingPoints)))
@@ -83,11 +85,20 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 			}
 
 			pos := center.Add(relativePos)
-			err = sim.AddShip(fleet.Name, pos, pilot, shipConf)
+			ship, err := sim.AddShip(fleet.Name, pos, pilot, shipConf)
 			if err != nil {
 				return nil, err
 			}
+
+			fleetMass += ship.GetMass()
 		}
+
+		if fleetMass > mp.Rules.MaxFleetMass {
+			err = errors.New(fmt.Sprintf("Mass for fleet '%s' is too large '%f' > '%f'", fleet.Name, fleetMass, mp.Rules.MaxFleetMass))
+			glog.Errorln(err)
+			return nil, err
+		}
+
 	}
 
 	return sim, nil
@@ -99,15 +110,15 @@ func (sim *Simulation) getNextID() int64 {
 	return id
 }
 
-func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) error {
+func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
 	ship, err := newShip(sim.getNextID(), sim, fleet, pos, pilot, conf)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	sim.ships = append(sim.ships, ship)
 
 	sim.survivors[fleet]++
-	return nil
+	return ship, nil
 }
 func (sim *Simulation) removeShip(i int) {
 
@@ -383,10 +394,10 @@ func collide(obj1, obj2 Object, cor float64) bool {
 	//Not close enough
 	if maxRange < distanceRadii {
 		return false
-	//} else if distanceRadii < 0 {
-	//	//We have a static collision
-	//	resolveCollision(obj1, obj2, cor)
-	//	return true
+		//} else if distanceRadii < 0 {
+		//	//We have a static collision
+		//	resolveCollision(obj1, obj2, cor)
+		//	return true
 	}
 
 	norm := dynamicVel.Normalize()

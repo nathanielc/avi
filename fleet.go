@@ -6,10 +6,9 @@ import (
 	"io/ioutil"
 )
 
-
 type FleetConf struct {
-	Name   string
-	Ships  []ShipConf
+	Name  string
+	Ships []ShipConf
 }
 
 func LoadFleetFromFile(f io.Reader) (*FleetConf, error) {

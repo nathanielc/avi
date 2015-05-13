@@ -3,8 +3,8 @@ package avi
 import (
 	"errors"
 	"github.com/go-gl/mathgl/mgl64"
-	"reflect"
 	"math"
+	"reflect"
 )
 
 var ErrOutOfEnergy = errors.New("out of energy")
@@ -13,7 +13,6 @@ var thrusterType = reflect.TypeOf(&Thruster{})
 var engineType = reflect.TypeOf(&Engine{})
 var weaponType = reflect.TypeOf(&Weapon{})
 var sensorType = reflect.TypeOf(&Sensor{})
-
 
 type ShipConf struct {
 	Pilot        string
@@ -25,7 +24,7 @@ type ShipConf struct {
 
 //Internal representaion of the ship
 type shipT struct {
-	pilot Pilot
+	pilot   Pilot
 	fleet   string
 	sim     *Simulation
 	texture string
@@ -44,7 +43,7 @@ func newShip(id int64, sim *Simulation, fleet string, pos mgl64.Vec3, pilot Pilo
 	newShip := &shipT{
 		sim:       sim,
 		fleet:     fleet,
-		pilot:      pilot,
+		pilot:     pilot,
 		parts:     make([]Part, 0),
 		thrusters: make([]*Thruster, 0),
 		engines:   make([]*Engine, 0),

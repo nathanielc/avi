@@ -1,9 +1,9 @@
 package avi
 
 import (
+	"errors"
 	"github.com/go-gl/mathgl/mgl64"
 	"math"
-	"errors"
 )
 
 type Object interface {

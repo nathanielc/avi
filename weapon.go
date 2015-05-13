@@ -1,8 +1,8 @@
 package avi
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"github.com/go-gl/mathgl/mgl64"
 	"math"
 )
@@ -45,7 +45,7 @@ func NewWeapon001(pos mgl64.Vec3) *Weapon {
 		ammoVelocity:  1000,
 		ammoMass:      1,
 		ammoRadius:    0.05,
-		ammoCapacity: 1e5,
+		ammoCapacity:  1e5,
 		cooldownTicks: int64(5.0 / TimePerTick),
 	}
 }
@@ -69,7 +69,7 @@ func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 }
 
 func (self *Weapon) GetMass() float64 {
-	return self.mass + float64(self.ammoCapacity) * self.ammoMass
+	return self.mass + float64(self.ammoCapacity)*self.ammoMass
 }
 
 func (self *Weapon) Fire(dir mgl64.Vec3) error {

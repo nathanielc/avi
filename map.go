@@ -6,12 +6,17 @@ import (
 	"io/ioutil"
 )
 
+type RulesConf struct {
+	Score        float64
+	MaxFleetMass float64 `yaml:"max_fleet_mass"`
+}
+
 type MapConf struct {
 	Radius         int64
-	Score          float64
 	Asteroids      []asteroidConf
 	ControlPoints  []controlPointConf `yaml:"control_points"`
 	StartingPoints [][]float64        `yaml:"starting_points"`
+    Rules          RulesConf
 }
 
 func LoadMapFromFile(f io.Reader) (*MapConf, error) {

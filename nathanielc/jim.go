@@ -34,7 +34,7 @@ func NewJim() avi.Pilot {
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        -1,
-		ctlp: -1,
+		ctlp:          -1,
 	}
 }
 
@@ -148,7 +148,7 @@ func (self *JimPilot) fire(tick int64, scan *avi.ScanResult) {
 				continue
 			}
 
-			dir := deltaVel.Add(deltaPos.Mul(1/time)).Add(acc.Mul(time*0.5))
+			dir := deltaVel.Add(deltaPos.Mul(1 / time)).Add(acc.Mul(time * 0.5))
 
 			glog.V(3).Infoln(dir, dir.Len())
 
@@ -168,26 +168,24 @@ func calcT(deltaPos, deltaVel mgl64.Vec3, va float64) float64 {
 	vt := deltaVel.Len()
 	x := deltaPos.Len()
 
-
 	ctheta := deltaPos.Normalize().Dot(deltaVel.Normalize())
 
 	a := va*va - vt*vt
-	b := 2*x*vt*ctheta
-	c := -x*x
+	b := 2 * x * vt * ctheta
+	c := -x * x
 
-
-	det := b*b-4*a*c
+	det := b*b - 4*a*c
 
 	if det < 0 {
-		 return -1
+		return -1
 	}
 
-	t1 := (-b + math.Sqrt(det)) / (2*a)
-	t2 := (-b - math.Sqrt(det)) / (2*a)
+	t1 := (-b + math.Sqrt(det)) / (2 * a)
+	t2 := (-b - math.Sqrt(det)) / (2 * a)
 
 	glog.V(4).Infoln(deltaPos, deltaVel, va, vt, x, t1, t2)
 
-	if t1 < t2 && t1 > 0  || t2 < 0{
+	if t1 < t2 && t1 > 0 || t2 < 0 {
 		return t1
 	}
 

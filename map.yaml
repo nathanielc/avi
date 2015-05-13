@@ -1,6 +1,8 @@
 ---
 radius: 1e6
-score: 50
+rules:
+  score: 10
+  max_fleet_mass: 1e7
 starting_points:
   - [1000,0,0]
   - [0,1000,0]

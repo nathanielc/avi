@@ -12,7 +12,7 @@ var registeredPilots = make(map[string]pilotFactory)
 
 //Register a ship to make it available
 func RegisterPilot(pilot string, pf pilotFactory) {
-	registeredPilots[pilot] =  pf
+	registeredPilots[pilot] = pf
 }
 
 // Get a registered ship by pilot name

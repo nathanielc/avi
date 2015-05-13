@@ -1,8 +1,8 @@
 package avi
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -21,17 +21,17 @@ func TestShouldColideStaticObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: mgl64.Vec3{0,0,0},
-		velocity: mgl64.Vec3{0,0,0},
-		mass: 1000,
-		radius: 10,
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: mgl64.Vec3{20,0,0},
-		velocity: mgl64.Vec3{0,0,0},
-		mass: 1000,
-		radius: 10,
+		position: mgl64.Vec3{20, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	collision := collide(obj1, obj2, 1.0)
@@ -42,17 +42,17 @@ func TestShouldNotColideStaticObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: mgl64.Vec3{0,0,0},
-		velocity: mgl64.Vec3{0,0,0},
-		mass: 1000,
-		radius: 10,
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: mgl64.Vec3{21,0,0},
-		velocity: mgl64.Vec3{0,0,0},
-		mass: 1000,
-		radius: 10,
+		position: mgl64.Vec3{21, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	collision := collide(obj1, obj2, 1.0)
@@ -63,18 +63,18 @@ func TestShouldColideStaticDynamicObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: mgl64.Vec3{0,0,0},
-		velocity: mgl64.Vec3{0,0,0},
-		mass: 1000,
-		radius: 10,
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: mgl64.Vec3{21,0,0},
+		position: mgl64.Vec3{21, 0, 0},
 		//Moving fast enough to arrive this tick
-		velocity: mgl64.Vec3{-2*1/TimePerTick,0,0},
-		mass: 1000,
-		radius: 10,
+		velocity: mgl64.Vec3{-2 * 1 / TimePerTick, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	v2 := obj2.velocity.Len()
@@ -89,18 +89,18 @@ func TestShouldNotColideStaticDynamicObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: mgl64.Vec3{0,0,0},
-		velocity: mgl64.Vec3{0,0,0},
-		mass: 1000,
-		radius: 10,
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: mgl64.Vec3{21,0,0},
+		position: mgl64.Vec3{21, 0, 0},
 		//Moving away
-		velocity: mgl64.Vec3{2*1/TimePerTick,0,0},
-		mass: 1000,
-		radius: 10,
+		velocity: mgl64.Vec3{2 * 1 / TimePerTick, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	collision := collide(obj1, obj2, 1.0)
@@ -111,19 +111,19 @@ func TestShouldColideParallelDynamicObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: mgl64.Vec3{0,0,0},
+		position: mgl64.Vec3{0, 0, 0},
 		//Moving away
-		velocity: mgl64.Vec3{-1*1/TimePerTick,0,0},
-		mass: 1000,
-		radius: 10,
+		velocity: mgl64.Vec3{-1 * 1 / TimePerTick, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: mgl64.Vec3{21,0,0},
+		position: mgl64.Vec3{21, 0, 0},
 		//Moving faster
-		velocity: mgl64.Vec3{-4*1/TimePerTick,0,0},
-		mass: 1000,
-		radius: 10,
+		velocity: mgl64.Vec3{-4 * 1 / TimePerTick, 0, 0},
+		mass:     1000,
+		radius:   10,
 	}
 
 	collision := collide(obj1, obj2, 1.0)
@@ -136,19 +136,19 @@ func TestCollisionShouldDoDamage(t *testing.T) {
 	health := 10.0
 
 	obj1 := &objectT{
-		position: mgl64.Vec3{0,0,0},
-		velocity: mgl64.Vec3{0,0,0},
-		mass: 1000,
-		radius: 10,
-		health: health,
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
+		mass:     1000,
+		radius:   10,
+		health:   health,
 	}
 
 	obj2 := &objectT{
-		position: mgl64.Vec3{21,0,0},
-		velocity: mgl64.Vec3{-2*1/TimePerTick,0,0},
-		mass: 1000,
-		radius: 10,
-		health: health,
+		position: mgl64.Vec3{21, 0, 0},
+		velocity: mgl64.Vec3{-2 * 1 / TimePerTick, 0, 0},
+		mass:     1000,
+		radius:   10,
+		health:   health,
 	}
 
 	collision := collide(obj1, obj2, 0.2)
@@ -163,19 +163,19 @@ func TestElasticCollisionShouldNotDoDamage(t *testing.T) {
 	health := 10.0
 
 	obj1 := &objectT{
-		position: mgl64.Vec3{0,0,0},
-		velocity: mgl64.Vec3{0,0,0},
-		mass: 1000,
-		radius: 10,
-		health: health,
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
+		mass:     1000,
+		radius:   10,
+		health:   health,
 	}
 
 	obj2 := &objectT{
-		position: mgl64.Vec3{21,0,0},
-		velocity: mgl64.Vec3{-2*1/TimePerTick,0,0},
-		mass: 1000,
-		radius: 10,
-		health: health,
+		position: mgl64.Vec3{21, 0, 0},
+		velocity: mgl64.Vec3{-2 * 1 / TimePerTick, 0, 0},
+		mass:     1000,
+		radius:   10,
+		health:   health,
 	}
 
 	collision := collide(obj1, obj2, 1.0)
@@ -231,12 +231,12 @@ func (self *oneDirPilot) LinkParts(shipParts []ShipPartConf, availableParts *Par
 
 	self.thruster = NewThruster001(mgl64.Vec3{0, -1, 0})
 	self.weapon = NewWeaponFromConf(mgl64.Vec3{1, 0, 0}, WeaponConf{
-		Mass: 1000,
-		Radius: 1,
-		Energy: 1,
+		Mass:         1000,
+		Radius:       1,
+		Energy:       1,
 		AmmoVelocity: 10,
-		AmmoMass: 0.1,
-		Cooldown: 0.1,
+		AmmoMass:     0.1,
+		Cooldown:     0.1,
 	})
 	return []Part{
 		self.engine,
