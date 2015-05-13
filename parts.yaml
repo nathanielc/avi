@@ -31,6 +31,7 @@ weapons:
     energy: 1
     ammo_mass: 1
     ammo_velocity: 100
+    ammo_capacity: 1e3
     cooldown: 1
 
   singularity-cannon:
@@ -39,6 +40,7 @@ weapons:
     energy: 1
     ammo_mass: 8
     ammo_velocity: 1000
+    ammo_capacity: 1e3
     cooldown: 1
 #List of sensors
 sensors:

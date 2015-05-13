@@ -34,6 +34,7 @@ func NewJim() avi.Pilot {
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        -1,
+		ctlp: -1,
 	}
 }
 
@@ -67,11 +68,11 @@ func (self *JimPilot) navCtlP(scan *avi.ScanResult) {
 
 	// Find Control Point
 	if !ctlpExists(self.ctlp, scan.ControlPoints) {
-		distance := 0.0
+		points := 0.0
 		for id, ctlp := range scan.ControlPoints {
-			d := ctlp.Position.Sub(scan.Position).Len()
-			if d < distance || distance == 0 {
-				distance = d
+			p := ctlp.Points
+			if p > points {
+				points = p
 				self.ctlp = id
 			}
 		}
@@ -121,6 +122,11 @@ func (self *JimPilot) fire(tick int64, scan *avi.ScanResult) {
 	target := scan.Ships[self.target]
 	targetPos := target.Position
 	targetVel := target.Velocity
+
+	if targetPos.Sub(scan.Position).Len() > 1e3 {
+		self.target = -1
+		glog.V(3).Infoln("Target is too far away choosing another target")
+	}
 
 	if tick%self.cooldownTicks == 0 {
 		self.targetF.tick = tick

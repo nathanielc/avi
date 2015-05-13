@@ -7,10 +7,11 @@ import (
 )
 
 type MapConf struct {
-	Radius        int64
-	Score         float64
-	Asteroids     []asteroidConf
-	ControlPoints []controlPointConf `yaml:"control_points"`
+	Radius         int64
+	Score          float64
+	Asteroids      []asteroidConf
+	ControlPoints  []controlPointConf `yaml:"control_points"`
+	StartingPoints [][]float64        `yaml:"starting_points"`
 }
 
 func LoadMapFromFile(f io.Reader) (*MapConf, error) {

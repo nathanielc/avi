@@ -9,12 +9,15 @@ import (
 
 const ammoRadius = 0.05
 
+var OutOfAmmoError = errors.New("Out of ammunition")
+
 type Weapon struct {
 	partT
 	energy        float64
 	ammoVelocity  float64
 	ammoMass      float64
 	ammoRadius    float64
+	ammoCapacity  int64
 	cooldownTicks int64
 	lastshot      int64
 }
@@ -26,6 +29,7 @@ type WeaponConf struct {
 	Energy       float64
 	AmmoVelocity float64 `yaml:"ammo_velocity"`
 	AmmoMass     float64 `yaml:"ammo_mass"`
+	AmmoCapacity int64   `yaml:"ammo_capacity"`
 	Cooldown     float64
 }
 
@@ -34,7 +38,7 @@ func NewWeapon001(pos mgl64.Vec3) *Weapon {
 		partT: partT{
 			objectT: objectT{
 				position: pos,
-				mass:     1000,
+				mass:     1e6,
 				radius:   1,
 			},
 		},
@@ -42,6 +46,7 @@ func NewWeapon001(pos mgl64.Vec3) *Weapon {
 		ammoVelocity:  1000,
 		ammoMass:      1,
 		ammoRadius:    ammoRadius,
+		ammoCapacity: 1e5,
 		cooldownTicks: int64(5.0 / TimePerTick),
 	}
 }
@@ -59,8 +64,13 @@ func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 		ammoVelocity:  conf.AmmoVelocity,
 		ammoMass:      conf.AmmoMass,
 		ammoRadius:    ammoRadius,
+		ammoCapacity:  conf.AmmoCapacity,
 		cooldownTicks: int64(conf.Cooldown / TimePerTick),
 	}
+}
+
+func (self *Weapon) GetMass() float64 {
+	return self.mass + float64(self.ammoCapacity) * self.ammoMass
 }
 
 func (self *Weapon) Fire(dir mgl64.Vec3) error {
@@ -68,6 +78,13 @@ func (self *Weapon) Fire(dir mgl64.Vec3) error {
 		err := errors.New(fmt.Sprintf("Invalid direction %s", dir))
 		return err
 	}
+
+	if self.ammoCapacity <= 0 {
+		return OutOfAmmoError
+	}
+
+	self.ammoCapacity--
+	self.ship.mass -= self.ammoMass
 
 	if self.lastshot+self.cooldownTicks > self.ship.sim.tick {
 		return errors.New("Weapon cooling down")

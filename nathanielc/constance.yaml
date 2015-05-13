@@ -1,6 +1,5 @@
 ---
 name: constance
-center: [0, 0, 0]
 ships:
   - pilot: constance
     position: [0, 0, 0]

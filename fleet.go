@@ -9,7 +9,6 @@ import (
 
 type FleetConf struct {
 	Name   string
-	Center []float64
 	Ships  []ShipConf
 }
 

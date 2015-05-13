@@ -13,7 +13,7 @@ const minSectorSize = 100
 const TimePerTick = 1e-2
 const small = 1e-6
 
-const impulseToDamage = 0.5
+const impulseToDamage = 0.25
 
 var maxTicks = flag.Int("ticks", -1, "Optional maximum ticks to simulate")
 var streamRate = flag.Int("rate", 10, "Every 'rate' ticks emit a frame")
@@ -57,9 +57,13 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 	for _, asteroid := range mp.Asteroids {
 		sim.addAsteroid(asteroid)
 	}
-	for _, fleet := range fleets {
+	for i, fleet := range fleets {
 
-		center, err := sliceToVec(fleet.Center)
+		if i == len(mp.StartingPoints) {
+			err := errors.New(fmt.Sprintf("Too many fleets for the map, only %d fleets allowed", len(mp.StartingPoints)))
+			return nil, err
+		}
+		center, err := sliceToVec(mp.StartingPoints[i])
 		if err != nil {
 			return nil, err
 		}

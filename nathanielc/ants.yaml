@@ -1,6 +1,5 @@
 ---
 name: ants
-center: [0, 0, 0]
 ships:
   - pilot: duck
     position: [0, 0, 0]

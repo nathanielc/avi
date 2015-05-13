@@ -15,6 +15,8 @@ func init() {
 	}
 }
 
+//This test fails currently since objects that start
+// on top of each other that collide cause a panic. Need to fix.
 func TestShouldColideStaticObjects(t *testing.T) {
 	assert := assert.New(t)
 

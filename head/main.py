@@ -92,8 +92,8 @@ class World(object):
                     model.setScale(obj.radius)
                     tex = loader.loadTexture("models/control_point.jpg")
                 elif obj.tex == 3:
-                    tex = loader.loadTexture("models/steel.jpg")
-                    model.setScale(obj.radius*10)
+                    tex = loader.loadTexture("models/bullet.jpg")
+                    model.setScale(obj.radius*20)
                 else:
                     print "Invalid texture", obj
                     exit(1)

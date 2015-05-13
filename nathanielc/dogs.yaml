@@ -1,22 +1,36 @@
 ---
 name: dogs
-center: [100, -100, -100]
 ships:
   - pilot: jim
     position: [0, 0, 0]
     parts: *JIM_PARTS
     texture: doge
-    hull_strength: 150
+    hull_strength: 250
   - pilot: jim
     position: [-100, -100, -100]
     parts: *JIM_PARTS
     texture: doge
-    hull_strength: 150
+    hull_strength: 250
   - pilot: jim
     position: [-300, 100, -100]
     parts: *JIM_PARTS
     texture: doge
-    hull_strength: 150
+    hull_strength: 250
+  - pilot: jim
+    position: [100, 0, 0]
+    parts: *JIM_PARTS
+    texture: doge
+    hull_strength: 250
+  - pilot: jim
+    position: [0, -100, -100]
+    parts: *JIM_PARTS
+    texture: doge
+    hull_strength: 250
+  - pilot: jim
+    position: [-200, 100, -100]
+    parts: *JIM_PARTS
+    texture: doge
+    hull_strength: 250
 
 
 ship_types:

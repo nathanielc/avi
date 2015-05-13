@@ -1,22 +1,40 @@
 ---
 radius: 1e6
 score: 50
+starting_points:
+  - [1000,0,0]
+  - [0,1000,0]
+  - [0,0,1000]
+  - [-1000,0,0]
+  - [0,-1000,0]
+  - [0,0,-1000]
 control_points:
   - mass: 1e6
     radius: 1e1
-    position: [-500, 0 , 0]
+    position: [-100, 0 , 0]
     points: 1
     influence: 100
   - mass: 1e6
     radius: 1e1
-    position: [500, 0 , 0]
+    position: [100, 0 , 0]
     points: 2
     influence: 100
 asteroids:
   - mass: 1e6
     radius: 6e1
-    position: [-250, 50, 0]
+    position: [-350, 0, 0]
   - mass: 1e6
     radius: 6e1
-    position: [250, 50, 0]
-
+    position: [350, 0, 0]
+  - mass: 1e6
+    radius: 6e1
+    position: [0, -350, 0]
+  - mass: 1e6
+    radius: 6e1
+    position: [0, 350, 0]
+  - mass: 1e6
+    radius: 6e1
+    position: [0, 0, -350]
+  - mass: 1e6
+    radius: 6e1
+    position: [0, 0, 350]

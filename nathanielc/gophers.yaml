@@ -1,6 +1,5 @@
 ---
 name: gophers
-center: [-400, -100, -100]
 ships:
   - pilot: jim
     position: [0, 0, 0]
@@ -9,6 +8,16 @@ ships:
     hull_strength: 150
   #- pilot: jim
   #  position: [-100, -100, -100]
+  #  parts: *JIM_PARTS
+  #  texture: cookie_monster
+  #  hull_strength: 150
+  #- pilot: jim
+  #  position: [100, 0, 0]
+  #  parts: *JIM_PARTS
+  #  texture: cookie_monster
+  #  hull_strength: 150
+  #- pilot: jim
+  #  position: [0, -100, -100]
   #  parts: *JIM_PARTS
   #  texture: cookie_monster
   #  hull_strength: 150
@@ -28,15 +37,15 @@ ship_types:
     - name: singularity-cannon
       type: weapon
       position: [0,1,0]
-    #- name: singularity-cannon
-    #  type: weapon
-    #  position: [0,1,0]
-    #- name: singularity-cannon
-    #  type: weapon
-    #  position: [0,1,0]
-    #- name: singularity-cannon
-    #  type: weapon
-    #  position: [0,1,0]
+    - name: singularity-cannon
+      type: weapon
+      position: [0,1,0]
+    - name: singularity-cannon
+      type: weapon
+      position: [0,1,0]
+    - name: singularity-cannon
+      type: weapon
+      position: [0,1,0]
     - name: antenna
       type: sensor
       position: [0,0,-1]
