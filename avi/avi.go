@@ -28,6 +28,10 @@ func main() {
 	}
 	defer pf.Close()
 	parts, err := avi.LoadPartsFromFile(pf)
+	if err != nil {
+		glog.Error(err)
+		return
+	}
 
 	// Load map
 	mf, err := os.Open(*mapFile)

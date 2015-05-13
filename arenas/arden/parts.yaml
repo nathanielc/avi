@@ -1,4 +1,4 @@
-
+---
 #List of different engines
 engines:
   nuclear:
@@ -21,25 +21,26 @@ thrusters:
 
 #List of weapons
 weapons:
-  stock_space_rife:
+  stock_space_rifle:
     mass: 400
     radius: 2
     energy: 1
     ammo_mass: 1
-	ammo_radius: 0.05
+    ammo_radius: 0.05
     ammo_velocity: 1000
     ammo_capacity: 1e3
     cooldown: 1
 
-  space_rife_mk2:
+  space_rifle_mk2:
     mass: 500
     radius: 2.3
     energy: 1
     ammo_mass: 1.4
-	ammo_radius: 0.05
+    ammo_radius: 0.05
     ammo_velocity: 1000
     ammo_capacity: 1e3
     cooldown: 1.05
+
 #List of sensors
 sensors:
   antenna:
