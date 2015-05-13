@@ -1,0 +1,50 @@
+
+#List of different engines
+engines:
+  nuclear:
+    mass: 10000
+    radius: 10
+    energy: 10000
+
+#List of thrusters
+thrusters:
+  rocket:
+    mass: 1000
+    radius: 5
+    energy: 75
+    force: 1.5e4
+  turbo-rocket:
+    mass: 1100
+    radius: 5
+    energy: 115
+    force: 2e4
+
+#List of weapons
+weapons:
+  stock_space_rife:
+    mass: 400
+    radius: 2
+    energy: 1
+    ammo_mass: 1
+	ammo_radius: 0.05
+    ammo_velocity: 1000
+    ammo_capacity: 1e3
+    cooldown: 1
+
+  space_rife_mk2:
+    mass: 500
+    radius: 2.3
+    energy: 1
+    ammo_mass: 1.4
+	ammo_radius: 0.05
+    ammo_velocity: 1000
+    ammo_capacity: 1e3
+    cooldown: 1.05
+#List of sensors
+sensors:
+  antenna:
+    mass: 150
+    radius: 0.5
+    energy: 2
+    power: 10
+
