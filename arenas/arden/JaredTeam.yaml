@@ -7,7 +7,7 @@ ships:
     texture: me262
     hull_strength: 150
   - pilot: jim
-    position: [-100, -100, -100]
+    position: [-300, -300, -300]
     parts: *JIM_PARTS
     texture: me262
     hull_strength: 150
@@ -20,14 +20,13 @@ ship_types:
       position: [0,0,0]
     - name: rocket
       type: thruster
-      position: [1,0,0]
+      position: [15,0,0]
     - name: rocket
       type: thruster
-      position: [-1,0,0]
+      position: [-15,0,0]
     - name: space_rifle_mk2
       type: weapon
-      position: [0,1,0]
+      position: [0,13,0]
     - name: antenna
       type: sensor
-      position: [0,0,-1]
- 
+      position: [0,0,-11]

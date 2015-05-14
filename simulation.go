@@ -57,10 +57,8 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 	for _, asteroid := range mp.Asteroids {
 		sim.addAsteroid(asteroid)
 	}
+	// Add Fleets
 	for i, fleet := range fleets {
-
-		fleetMass := 0.0
-
 		if i == len(mp.StartingPoints) {
 			err := errors.New(fmt.Sprintf("Too many fleets for the map, only %d fleets allowed", len(mp.StartingPoints)))
 			return nil, err
@@ -69,38 +67,12 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 		if err != nil {
 			return nil, err
 		}
-
-		for _, shipConf := range fleet.Ships {
-
-			glog.Infof("Adding ship with pilot %s for fleet %s", shipConf.Pilot, fleet.Name)
-			pilot := getPilot(shipConf.Pilot)
-			if pilot == nil {
-				return nil, errors.New(fmt.Sprintf("Unknown pilot '%s'", shipConf.Pilot))
-			}
-			pilot.JoinFleet(fleet.Name)
-
-			relativePos, err := sliceToVec(shipConf.Position)
-			if err != nil {
-				return nil, err
-			}
-
-			pos := center.Add(relativePos)
-			ship, err := sim.AddShip(fleet.Name, pos, pilot, shipConf)
-			if err != nil {
-				return nil, err
-			}
-
-			fleetMass += ship.GetMass()
-		}
-
-		if fleetMass > mp.Rules.MaxFleetMass {
-			err = errors.New(fmt.Sprintf("Mass for fleet '%s' is too large '%f' > '%f'", fleet.Name, fleetMass, mp.Rules.MaxFleetMass))
-			glog.Errorln(err)
+		err = sim.addFleet(center, fleet, mp.Rules.MaxFleetMass)
+		if err != nil {
 			return nil, err
 		}
 
 	}
-
 	return sim, nil
 }
 
@@ -165,6 +137,43 @@ func (sim *Simulation) addAsteroid(aConf asteroidConf) {
 	sim.inrts = append(sim.inrts, as)
 	sim.astds = append(sim.astds, as)
 
+}
+
+// Adds a fleet to the simulation based on a given fleet config
+func (sim *Simulation) addFleet(center mgl64.Vec3, fleet *FleetConf, maxMass float64) error {
+
+	fleetMass := 0.0
+
+	for _, shipConf := range fleet.Ships {
+
+		glog.Infof("Adding ship with pilot %s for fleet %s", shipConf.Pilot, fleet.Name)
+		pilot := getPilot(shipConf.Pilot)
+		if pilot == nil {
+			return errors.New(fmt.Sprintf("Unknown pilot '%s'", shipConf.Pilot))
+		}
+		pilot.JoinFleet(fleet.Name)
+
+		relativePos, err := sliceToVec(shipConf.Position)
+		if err != nil {
+			return err
+		}
+
+		pos := center.Add(relativePos)
+		ship, err := sim.AddShip(fleet.Name, pos, pilot, shipConf)
+		if err != nil {
+			completeErr := errors.New(fmt.Sprintf("Error adding ship '%s' to fleet '%s': %s", shipConf.Pilot, fleet.Name, err.Error()))
+			return completeErr
+		}
+
+		fleetMass += ship.GetMass()
+	}
+
+	if fleetMass > maxMass {
+		err := errors.New(fmt.Sprintf("Mass for fleet '%s' is too large '%f' > '%f'", fleet.Name, fleetMass, maxMass))
+		glog.Errorln(err)
+		return err
+	}
+	return nil
 }
 
 func (sim *Simulation) Start() {
