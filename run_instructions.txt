@@ -1,0 +1,2 @@
+C:\Users\Val\Documents\gocode\src\github.com\nvcook42\avi>
+go run avi\avi.go  -logtostderr -ticks 15000 -map arenas\arden\map.yaml -parts arenas\arden\parts.yaml arenas\arden\JaredTeam.yaml
