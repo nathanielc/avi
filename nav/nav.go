@@ -66,8 +66,9 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 
 func (nav *Nav) thrust(acc mgl64.Vec3) error {
 	glog.V(3).Infoln("Thrusting", acc)
+	scaled := acc.Mul(1.0 / float64(len(nav.thrusters)))
 	for _, thruster := range nav.thrusters {
-		err := thruster.Thrust(acc)
+		err := thruster.Thrust(scaled)
 		if err != nil {
 			return err
 		}
