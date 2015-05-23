@@ -2,7 +2,7 @@
 name: J-wing
 ships:
   - pilot: jim
-    position: [0, 0, 0]
+    position: [300, 0, 0]
     parts: *JIM_PARTS
     texture: me262
     hull_strength: 150
@@ -11,28 +11,48 @@ ships:
     parts: *J_WING_PARTS
     texture: me262
     hull_strength: 150
+  - pilot: jim
+    position: [-200, -200, -100]
+    parts: *J_WING_PARTS
+    texture: me262
+    hull_strength: 150
+  - pilot: jim
+    position: [-100, -50, -200]
+    parts: *J_WING_PARTS
+    texture: me262
+    hull_strength: 150
+  - pilot: jim
+    position: [0, 0, 300]
+    parts: *JIM_PARTS
+    texture: me262
+    hull_strength: 150
+  - pilot: jim
+    position: [0, 300, 0]
+    parts: *JIM_PARTS
+    texture: me262
+    hull_strength: 150
 
 
 ship_types:
-  parts: J_WING_PARTS
-	- name: nuclear
+  parts: &J_WING_PARTS
+    - name: nuclear
       type: engine
       position: [0,0,0]
-	- name: rocket
+    - name: rocket
       type: thruster
       position: [1,0,0]
-	- name: space_rifle_mk2
+    - name: space_rifle_mk2
       type: weapon
       position: [0,1,0]
     - name: antenna
       type: sensor
       position: [0,0,-1]
-	- name: space_rifle_mk2
+    - name: space_rifle_mk2
       type: weapon
       position: [0,1,0]
-	- name: space_rifle_mk2
+    - name: stock_space_rifle
       type: weapon
-      position: [0,1,0]
+      position: [0,0,1]
   parts:  &JIM_PARTS
     - name: nuclear
       type: engine
