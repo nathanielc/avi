@@ -47,6 +47,10 @@ func NewThrusterFromConf(pos mgl64.Vec3, conf ThrusterConf) *Thruster {
 	}
 }
 
+func (self *Thruster) GetForce() float64 {
+	return self.force
+}
+
 // Fire the thruster the length of dir indicates how hard
 // to fire the thruster. The length should equal to the
 // accerlation to apply to the ship.

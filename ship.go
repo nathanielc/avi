@@ -92,6 +92,22 @@ func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 			ship.sensors = append(ship.sensors, s)
 		}
 	}
+	// Check for colliding parts
+	for i := range ship.parts {
+		for j := range ship.parts {
+			if i == j {
+				continue
+			}
+			p1 := ship.parts[i]
+			p2 := ship.parts[j]
+			distance := p1.GetPosition().Sub(p2.GetPosition()).Len()
+			radii := p1.GetRadius() + p2.GetRadius()
+			if radii > distance {
+				err := errors.New("Error: ship parts overlap")
+				return err
+			}
+		}
+	}
 	return nil
 }
 
