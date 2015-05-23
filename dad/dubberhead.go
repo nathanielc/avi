@@ -5,13 +5,15 @@ import (
 	"github.com/golang/glog"
 	"github.com/nvcook42/avi"
 	"github.com/nvcook42/avi/nav"
-	"math/rand"
 	"math"
+	"math/rand"
 )
 
 func init() {
 	avi.RegisterPilot("DubberHead", NewDubberHead)
 }
+
+var seed int64 = 0
 
 type DubberHeadPilot struct {
 	avi.GenericPilot
@@ -23,8 +25,8 @@ type DubberHeadPilot struct {
 	targetI       velPoint
 	targetF       velPoint
 	ctlp          int64
-	ctrlpBias     mgl64.Vec3
-	ctrlpBiasRand *Rand
+	ctlpBias      mgl64.Vec3
+	ctlpBiasRand  *rand.Rand
 }
 
 type velPoint struct {
@@ -33,13 +35,15 @@ type velPoint struct {
 }
 
 func NewDubberHead() avi.Pilot {
-	ctrlpBiasRand := rand.New(rand.NewSource(1))
+	seed++
+	ctlpBiasRand := rand.New(rand.NewSource(seed))
 	return &DubberHeadPilot{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        -1,
 		ctlp:          -1,
-		ctlpBias: (mgl64.Vec3{ctrlpBiasRand.Float64(), ctrlpBiasRand.Float64(), ctrlpBiasRand.Float64()}).Normalize,
+		ctlpBias:      (mgl64.Vec3{ctlpBiasRand.Float64(), ctlpBiasRand.Float64(), ctlpBiasRand.Float64()}).Normalize(),
+		ctlpBiasRand:  ctlpBiasRand,
 	}
 }
 
@@ -95,7 +99,7 @@ func (self *DubberHeadPilot) navCtlP(scan *avi.ScanResult) {
 		tolerance = 30
 	}
 	wp := &nav.Waypoint{
-		Position:  ctlp.Position.Add(ctlpBias.Mul(ctlp.Radius + scan.Radius + tolerance)),
+		Position:  ctlp.Position.Add(self.ctlpBias.Mul(ctlp.Radius + scan.Radius + tolerance)),
 		MaxSpeed:  tolerance * 0.4,
 		Tolerance: tolerance,
 	}
