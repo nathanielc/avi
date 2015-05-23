@@ -173,6 +173,8 @@ func (sim *Simulation) addFleet(center mgl64.Vec3, fleet *FleetConf, maxMass flo
 		glog.Errorln(err)
 		return err
 	}
+	glog.Infof("Fleet mass '%s' is %f", fleet.Name, fleetMass)
+
 	return nil
 }
 
