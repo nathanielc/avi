@@ -45,14 +45,13 @@ ship_types:
       position: [0,0,0]
     - name: rocket
       type: thruster
-      position: [1,0,0]
+      position: [15,0,0]
     - name: rocket
       type: thruster
-      position: [-1,0,0]
+      position: [-15,0,0]
     - name: space_rifle_mk2
       type: weapon
-      position: [0,1,0]
+      position: [0,15,0]
     - name: antenna
       type: sensor
-      position: [0,0,-1]
- 
+      position: [0,0,-15]

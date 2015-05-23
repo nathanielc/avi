@@ -1,25 +1,25 @@
 ---
-name: J-wing
+name: Jared
 ships:
   - pilot: jim
     position: [300, 0, 0]
-    parts: *JIM_PARTS
-    texture: me262
+    parts: *J_WING_PARTS
+    texture: magic_sphere_2
     hull_strength: 150
   - pilot: jim
     position: [-100, -100, -100]
     parts: *J_WING_PARTS
-    texture: me262
+    texture: orange_sphere
     hull_strength: 150
   - pilot: jim
     position: [0, 0, 100]
-    parts: *JIM_PARTS
-    texture: me262
+    parts: *J_WING_PARTS
+    texture: magic_sphere_1
     hull_strength: 150
   - pilot: jim
-    position: [-100, 0, -100]
+    position: [10, 0, -100]
     parts: *J_WING_PARTS
-    texture: me262
+    texture: magic_sphere
     hull_strength: 150
 
 
@@ -59,4 +59,16 @@ ship_types:
     - name: antenna
       type: sensor
       position: [0,0,-15]
- 
+#   parts:  &DRONE_PARTS
+#    - name: nuclear
+#      type: engine
+#      position: [0,0,0]
+#    - name: rocket
+#      type: thruster
+#      position: [15,0,0]
+#    - name: rocket
+#      type: thruster
+#      position: [-15,0,0]
+#    - name: antenna
+#      type: sensor
+#      position: [0,0,-15]
