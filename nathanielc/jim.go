@@ -21,7 +21,7 @@ type JimPilot struct {
 	target        int64
 	targetI       velPoint
 	targetF       velPoint
-	ctlp          int64
+	ctlpID        int64
 }
 
 type velPoint struct {
@@ -34,7 +34,7 @@ func NewJim() avi.Pilot {
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        -1,
-		ctlp:          -1,
+		ctlpID:        -1,
 	}
 }
 
@@ -61,28 +61,27 @@ func (self *JimPilot) Tick(tick int64) {
 	self.navCtlP(scan)
 
 	self.fire(tick, scan)
-
 }
 
 func (self *JimPilot) navCtlP(scan *avi.ScanResult) {
 
 	// Find Control Point
-	if !ctlpExists(self.ctlp, scan.ControlPoints) {
+	if !ctlpExists(self.ctlpID, scan.ControlPoints) {
 		points := 0.0
 		for id, ctlp := range scan.ControlPoints {
 			p := ctlp.Points
 			if p > points {
 				points = p
-				self.ctlp = id
+				self.ctlpID = id
 			}
 		}
 	}
 
-	if !ctlpExists(self.ctlp, scan.ControlPoints) {
+	if !ctlpExists(self.ctlpID, scan.ControlPoints) {
 		return
 	}
 
-	ctlp := scan.ControlPoints[self.ctlp]
+	ctlp := scan.ControlPoints[self.ctlpID]
 
 	distance := ctlp.Position.Sub(scan.Position).Len()
 	tolerance := (distance - ctlp.Influence) / 2.0
