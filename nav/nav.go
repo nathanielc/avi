@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
-	"github.com/nvcook42/avi"
+	"github.com/nathanielc/avi"
 )
 
 var NoMoreWaypoints = errors.New("No more waypoints")

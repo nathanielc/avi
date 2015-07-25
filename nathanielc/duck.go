@@ -2,7 +2,7 @@ package nathanielc
 
 import (
 	"github.com/golang/glog"
-	"github.com/nvcook42/avi"
+	"github.com/nathanielc/avi"
 )
 
 func init() {

@@ -3,8 +3,8 @@ package nathanielc
 import (
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
-	"github.com/nvcook42/avi"
-	"github.com/nvcook42/avi/nav"
+	"github.com/nathanielc/avi"
+	"github.com/nathanielc/avi/nav"
 	//"math"
 )
 

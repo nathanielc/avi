@@ -4,8 +4,8 @@ import (
 	"compress/gzip"
 	"flag"
 	"github.com/golang/glog"
-	"github.com/nvcook42/avi"
-	_ "github.com/nvcook42/avi/ships"
+	"github.com/nathanielc/avi"
+	_ "github.com/nathanielc/avi/ships"
 	"os"
 	"runtime"
 )

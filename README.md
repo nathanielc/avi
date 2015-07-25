@@ -4,12 +4,12 @@
 ```sh
 $ mkdir ~/gocode
 $ export GOPATH=~/gocode
-$ go get github.com/nvcook42/avi
+$ go get github.com/nathanielc/avi
 ```
 
 ## How to run a simulation
 ```sh
-$ cd $GOPATH/src/github.com/nvcook42/avi/
+$ cd $GOPATH/src/github.com/nathanielc/avi/
 $ make build
 $ go run avi/avi.go  -logtostderr -ticks 50000 nathanielc/*.yaml
 ```

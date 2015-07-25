@@ -1,7 +1,7 @@
 package ships
 
 import (
-	_ "github.com/nvcook42/avi/dad"
-	_ "github.com/nvcook42/avi/jac"
-	_ "github.com/nvcook42/avi/nathanielc"
+	_ "github.com/nathanielc/avi/dad"
+	_ "github.com/nathanielc/avi/jac"
+	_ "github.com/nathanielc/avi/nathanielc"
 )

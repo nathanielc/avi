@@ -3,7 +3,7 @@ package avi
 import (
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/nvcook42/avi/head"
+	"github.com/nathanielc/avi/head"
 	"io"
 )
 
