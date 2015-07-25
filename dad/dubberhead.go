@@ -73,7 +73,7 @@ func (self *DubberHeadPilot) Tick(tick int64) {
 
 }
 
-func (self *DubberHeadPilot) navCtlP(time, scan *avi.ScanResult) {
+func (self *DubberHeadPilot) navCtlP(time int64, scan *avi.ScanResult) {
 
 	// Find Control Point
 	if !ctlpExists(self.ctlp, scan.ControlPoints) {
@@ -95,8 +95,8 @@ func (self *DubberHeadPilot) navCtlP(time, scan *avi.ScanResult) {
 
 	distance := ctlp.Position.Sub(scan.Position).Len()
 	tolerance := (distance - ctlp.Influence) / 2.0
-	if time % 10 == 0 {
-		tolerance /:= 100
+	if time%10 == 0 {
+		tolerance /= 100
 	}
 
 	if tolerance < 10 {

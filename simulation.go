@@ -195,7 +195,7 @@ func (sim *Simulation) loop() (string, float64) {
 	cont := true
 	score := 0.0
 	maxTicks := int64(*maxTicks)
-	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < sim.maxScore) {
+	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < sim.maxScore) && len(sim.ships) > 0 {
 		score, cont = sim.doTick()
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
 			sim.stream.SendFrame(sim.scores, sim.ships, sim.projs, sim.astds, sim.ctlps)

@@ -9,7 +9,6 @@ import (
 )
 
 func init() {
-	glog.Errorln("Registering oatmeal")
 	avi.RegisterPilot("oatmeal", NewOatmeal)
 }
 

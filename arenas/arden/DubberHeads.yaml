@@ -1,0 +1,57 @@
+---
+name: DubberHeads
+ships:
+  - pilot: DubberHead
+    position: [0, 0, 0]
+    parts: *DubberHeadParts
+    texture: space-clock1
+    hull_strength: 150
+  - pilot: DubberHead
+    position: [-1500, -1500, -1500]
+    parts: *DubberHeadParts
+    texture: space-clock2
+    hull_strength: 150
+  - pilot: DubberHead
+    position: [0, -1500, -1500]
+    parts: *DubberHeadParts
+    texture: space-clock3
+    hull_strength: 150
+  - pilot: DubberHead
+    position: [-1500, 0, -1500]
+    parts: *DubberHeadParts
+    texture: space-clock4
+    hull_strength: 150
+  - pilot: DubberHead
+    position: [-1500, 1500, 0]
+    parts: *DubberHeadParts
+    texture: space-clock5
+    hull_strength: 150
+  - pilot: DubberHead
+    position: [1500, -1500, 1500]
+    parts: *DubberHeadParts
+    texture: space-clock6
+    hull_strength: 150
+  - pilot: DubberHead
+    position: [1500, 1500, 1500]
+    parts: *DubberHeadParts
+    texture: space-clock7
+    hull_strength: 150
+
+
+ship_types:
+  parts:  &DubberHeadParts
+    - name: nuclear
+      type: engine
+      position: [0,0,0]
+    - name: rocket
+      type: thruster
+      position: [15,0,0]
+    - name: rocket
+      type: thruster
+      position: [-15,0,0]
+    - name: space_rifle_mk2
+      type: weapon
+      position: [0,15,0]
+    - name: antenna
+      type: sensor
+      position: [0,0,-15]
