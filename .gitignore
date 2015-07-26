@@ -32,4 +32,4 @@ _testmain.go
 *.avi
 arenas/*/game*
 .vagrant
-avi
+/avi
