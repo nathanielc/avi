@@ -68,7 +68,7 @@ func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 	}
 }
 
-func (self *Weapon) GetMass() float64 {
+func (self *Weapon) Mass() float64 {
 	return self.mass + float64(self.ammoCapacity)*self.ammoMass
 }
 

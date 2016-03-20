@@ -17,14 +17,14 @@ type JillPilot struct {
 	fired         bool
 	navComputer   *nav.Nav
 	cooldownTicks int64
-	target        int64
+	target        avi.ID
 }
 
 func NewJill() avi.Pilot {
 	return &JillPilot{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
-		target:        -1,
+		target:        avi.NilID,
 	}
 }
 
@@ -91,7 +91,7 @@ func (self *JillPilot) Tick(tick int64) {
 	}
 }
 
-func targetExists(target int64, ships map[int64]avi.ShipSR) bool {
+func targetExists(target avi.ID, ships map[avi.ID]avi.ShipSR) bool {
 	_, ok := ships[target]
 	return ok
 }

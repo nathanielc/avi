@@ -15,7 +15,7 @@ func init() {
 type OatmealPilot struct {
 	avi.GenericPilot
 	navComputer *nav.Nav
-	ctlp        int64
+	ctlp        avi.ID
 	targetVel   float64
 	maxForce    float64
 }

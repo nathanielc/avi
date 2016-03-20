@@ -1,11 +1,12 @@
 package nathanielc
 
 import (
+	"math"
+
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
 	"github.com/nathanielc/avi/nav"
-	"math"
 )
 
 func init() {
@@ -18,10 +19,10 @@ type JimPilot struct {
 	fired         bool
 	navComputer   *nav.Nav
 	cooldownTicks int64
-	target        int64
+	target        avi.ID
 	targetI       velPoint
 	targetF       velPoint
-	ctlpID        int64
+	ctlpID        avi.ID
 }
 
 type velPoint struct {
@@ -33,8 +34,8 @@ func NewJim() avi.Pilot {
 	return &JimPilot{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
-		target:        -1,
-		ctlpID:        -1,
+		target:        avi.NilID,
+		ctlpID:        avi.NilID,
 	}
 }
 
@@ -123,7 +124,7 @@ func (self *JimPilot) fire(tick int64, scan *avi.ScanResult) {
 	targetVel := target.Velocity
 
 	if targetPos.Sub(scan.Position).Len() > 1e3 {
-		self.target = -1
+		self.target = avi.NilID
 		glog.V(3).Infoln("Target is too far away choosing another target")
 	}
 
@@ -191,12 +192,12 @@ func calcT(deltaPos, deltaVel mgl64.Vec3, va float64) float64 {
 	return t2
 }
 
-func ctlpExists(target int64, ctlps map[int64]avi.CtlPSR) bool {
+func ctlpExists(target avi.ID, ctlps map[avi.ID]avi.CtlPSR) bool {
 	_, ok := ctlps[target]
 	return ok
 }
 
-func shipExists(target int64, ships map[int64]avi.ShipSR) bool {
+func shipExists(target avi.ID, ships map[avi.ID]avi.ShipSR) bool {
 	_, ok := ships[target]
 	return ok
 }

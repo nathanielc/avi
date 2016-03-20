@@ -3,9 +3,11 @@ package avi
 import (
 	"flag"
 	"fmt"
+	"math/rand"
+	"testing"
+
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func init() {
@@ -187,11 +189,16 @@ func TestElasticCollisionShouldNotDoDamage(t *testing.T) {
 func BenchmarkLoop(b *testing.B) {
 	ship0 := newOneDirPilot(mgl64.Vec3{-1, -1, -1})
 	ship1 := newOneDirPilot(mgl64.Vec3{1, 1, 1})
+	radius := 10000.0
+	maxVel := radius / 10
 	sim, err := NewSimulation(&MapConf{
-		Radius: 1000,
+		Radius: int64(radius),
 	},
 		nil,
 		nil,
+		nil,
+		-1,
+		60,
 		nil,
 	)
 	if err != nil {
@@ -199,6 +206,21 @@ func BenchmarkLoop(b *testing.B) {
 	}
 	sim.AddShip("f1", mgl64.Vec3{1e4, 1e4, 1e4}, ship0, ShipConf{})
 	sim.AddShip("f2", mgl64.Vec3{-1e4, -1e4, -1e4}, ship1, ShipConf{})
+	r := rand.New(rand.NewSource(42))
+	for i := 0; i < 1000; i++ {
+		pos := mgl64.Vec3{
+			r.Float64() * radius,
+			r.Float64() * radius,
+			r.Float64() * radius,
+		}
+		vel := mgl64.Vec3{
+			r.Float64() * maxVel,
+			r.Float64() * maxVel,
+			r.Float64() * maxVel,
+		}
+		sim.addProjectile(pos, vel, 1, 0.1)
+	}
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		sim.doTick()

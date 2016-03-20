@@ -1,5 +1,7 @@
 package avi
 
+const asteroidTexture = "asteroid"
+
 type asteroid struct {
 	objectT
 }
@@ -10,7 +12,7 @@ type asteroidConf struct {
 	Position []float64
 }
 
-func NewAsteroid(id int64, conf asteroidConf) (*asteroid, error) {
+func NewAsteroid(id ID, conf asteroidConf) (*asteroid, error) {
 	pos, err := sliceToVec(conf.Position)
 	if err != nil {
 		return nil, err
@@ -23,4 +25,7 @@ func NewAsteroid(id int64, conf asteroidConf) (*asteroid, error) {
 			radius:   conf.Radius,
 		},
 	}, nil
+}
+func (asteroid) Texture() string {
+	return asteroidTexture
 }
