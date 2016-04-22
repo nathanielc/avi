@@ -12,12 +12,12 @@ control_points:
     radius: 1e1
     position: [-100, 0 , 0]
     points: 1
-    influence: 100
+    influence: 110
   - mass: 1e6
     radius: 1e1
     position: [100, 0 , 0]
     points: 1
-    influence: 100
+    influence: 110
 asteroids:
   - mass: 1e6
     radius: 6e1

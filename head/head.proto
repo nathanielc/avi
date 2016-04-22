@@ -1,36 +1,30 @@
+syntax = "proto3";
 package head;
 
-enum Texture {
-    SHIP = 0;
-    ASTEROID = 1;
-    CONTROL_POINT = 2;
-    PROJECTILE = 3;
-}
-
 message Vector {
-    required float x = 1;
-    required float y = 2;
-    required float z = 3;
+    double x = 1;
+    double y = 2;
+    double z = 3;
 }
 
 message Object {
-    required int64 ID = 1;
-    required Vector pos = 2;
-    required float radius = 3;
-    required Texture tex = 4;
-    optional string tex_custom = 5;
+    uint64 ID = 1;
+    Vector pos = 2;
+    double radius = 3;
+    string texture = 4;
 }
 
 message Score {
-    required string fleet = 1;
-    required float score = 2;
+    string fleet = 1;
+    double score = 2;
 }
 
 message Frame {
-    repeated Score score = 1;
-    repeated Object object = 2;
+    repeated Score scores = 1;
+    repeated Object objects = 2;
+    repeated uint64 deleted = 3;
 }
 
-message Stream {
-    repeated Frame frame = 2;
+message Meta {
+    int32 FPS = 1;
 }

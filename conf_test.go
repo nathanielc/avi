@@ -42,11 +42,11 @@ func TestNewEngineFromConf(t *testing.T) {
 
 	assert.NotNil(engine)
 
-	assert.Equal(conf.Mass, engine.GetMass())
-	assert.Equal(conf.Radius, engine.GetRadius())
+	assert.Equal(conf.Mass, engine.Mass())
+	assert.Equal(conf.Radius, engine.Radius())
 	assert.Equal(conf.Energy, engine.energy)
 
-	assert.Equal(pos, engine.GetPosition())
+	assert.Equal(pos, engine.Position())
 }
 
 func TestLoadSensor(t *testing.T) {
@@ -85,11 +85,11 @@ func TestNewSensorFromConf(t *testing.T) {
 
 	assert.NotNil(sensor)
 
-	assert.Equal(conf.Mass, sensor.GetMass())
-	assert.Equal(conf.Radius, sensor.GetRadius())
+	assert.Equal(conf.Mass, sensor.Mass())
+	assert.Equal(conf.Radius, sensor.Radius())
 	assert.Equal(conf.Energy, sensor.energy)
 
-	assert.Equal(pos, sensor.GetPosition())
+	assert.Equal(pos, sensor.Position())
 }
 
 func TestLoadThruster(t *testing.T) {
@@ -131,12 +131,12 @@ func TestNewThrusterFromConf(t *testing.T) {
 
 	assert.NotNil(Thruster)
 
-	assert.Equal(conf.Mass, Thruster.GetMass())
-	assert.Equal(conf.Radius, Thruster.GetRadius())
+	assert.Equal(conf.Mass, Thruster.Mass())
+	assert.Equal(conf.Radius, Thruster.Radius())
 	assert.Equal(conf.Force, Thruster.force)
 	assert.Equal(conf.Energy, Thruster.energy)
 
-	assert.Equal(pos, Thruster.GetPosition())
+	assert.Equal(pos, Thruster.Position())
 }
 
 func TestLoadWeapon(t *testing.T) {
@@ -175,9 +175,9 @@ func TestNewWeaponFromConf(t *testing.T) {
 
 	assert.NotNil(weapon)
 
-	assert.Equal(conf.Mass, weapon.GetMass())
-	assert.Equal(conf.Radius, weapon.GetRadius())
+	assert.Equal(conf.Mass, weapon.Mass())
+	assert.Equal(conf.Radius, weapon.Radius())
 	assert.Equal(conf.Energy, weapon.energy)
 
-	assert.Equal(pos, weapon.GetPosition())
+	assert.Equal(pos, weapon.Position())
 }

@@ -17,18 +17,18 @@ type MonsterPilot struct {
 	fired         bool
 	navComputer   *nav.Nav
 	cooldownTicks int64
-	target        int64
+	target        avi.ID
 	targetI       velPoint
 	targetF       velPoint
-	ctlp          int64
+	ctlp          avi.ID
 }
 
 func NewMonster() avi.Pilot {
 	return &MonsterPilot{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
-		target:        -1,
-		ctlp:          -1,
+		target:        avi.NilID,
+		ctlp:          avi.NilID,
 	}
 }
 
@@ -118,7 +118,7 @@ func (self *MonsterPilot) fire(tick int64, scan *avi.ScanResult) {
 	targetVel := target.Velocity
 
 	if targetPos.Sub(scan.Position).Len() > 1e3 {
-		self.target = -1
+		self.target = avi.NilID
 		glog.V(3).Infoln("Target is too far away choosing another target")
 	}
 

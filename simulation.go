@@ -2,21 +2,21 @@ package avi
 
 import (
 	"errors"
-	"flag"
 	"fmt"
+	"io"
+	"math"
+	"runtime/pprof"
+	"time"
+
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
-	"math"
 )
 
 const minSectorSize = 100
-const TimePerTick = 1e-2
+const TimePerTick = 1e-3
 const small = 1e-6
 
 const impulseToDamage = 0.25
-
-var maxTicks = flag.Int("ticks", -1, "Optional maximum ticks to simulate")
-var streamRate = flag.Int("rate", 10, "Every 'rate' ticks emit a frame")
 
 type Simulation struct {
 	ships      []*shipT
@@ -25,6 +25,7 @@ type Simulation struct {
 	ctlps      []*controlPoint
 	astds      []*asteroid
 	tick       int64
+	maxTicks   int64
 	radius     int64
 	sectorSize int64
 	//Number of ships alive from each fleet
@@ -34,20 +35,37 @@ type Simulation struct {
 	//Available parts
 	availableParts *PartsConf
 	//ID counter
-	idCounter int64
-	stream    *Stream
+	idCounter ID
+	stream    Drawer
+	deleted   []ID
 	rate      int64
+	mem       io.Writer
 }
 
-func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *Stream) (*Simulation, error) {
+func NewSimulation(
+	mp *MapConf,
+	parts *PartsConf,
+	fleets []*FleetConf,
+	stream Drawer,
+	maxTime time.Duration,
+	fps int64,
+	mem io.Writer,
+) (*Simulation, error) {
+	rate := int64(1.0 / (TimePerTick * float64(fps)))
+	if rate < 1 {
+		rate = 1
+	}
+	maxTicks := int64(float64(maxTime/time.Second) / float64(TimePerTick))
 	sim := &Simulation{
 		radius:         mp.Radius,
 		availableParts: parts,
 		survivors:      make(map[string]int),
 		scores:         make(map[string]float64),
 		maxScore:       mp.Rules.Score,
-		rate:           int64(*streamRate),
+		rate:           rate,
+		maxTicks:       maxTicks,
 		stream:         stream,
+		mem:            mem,
 	}
 	// Add Control Points
 	for _, cp := range mp.ControlPoints {
@@ -76,7 +94,7 @@ func NewSimulation(mp *MapConf, parts *PartsConf, fleets []*FleetConf, stream *S
 	return sim, nil
 }
 
-func (sim *Simulation) getNextID() int64 {
+func (sim *Simulation) getNextID() ID {
 	id := sim.idCounter
 	sim.idCounter++
 	return id
@@ -96,6 +114,7 @@ func (sim *Simulation) removeShip(i int) {
 
 	ship := sim.ships[i]
 	sim.ships = append(sim.ships[:i], sim.ships[i+1:]...)
+	sim.deleted = append(sim.deleted, ship.ID())
 
 	sim.survivors[ship.fleet]--
 }
@@ -165,7 +184,7 @@ func (sim *Simulation) addFleet(center mgl64.Vec3, fleet *FleetConf, maxMass flo
 			return completeErr
 		}
 
-		fleetMass += ship.GetMass()
+		fleetMass += ship.Mass()
 	}
 
 	if fleetMass > maxMass {
@@ -194,11 +213,38 @@ func (sim *Simulation) Start() {
 func (sim *Simulation) loop() (string, float64) {
 	cont := true
 	score := 0.0
-	maxTicks := int64(*maxTicks)
+	maxTicks := sim.maxTicks
+	var drawables []Drawable
 	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < sim.maxScore) && len(sim.ships) > 0 {
 		score, cont = sim.doTick()
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
-			sim.stream.SendFrame(sim.scores, sim.ships, sim.projs, sim.astds, sim.ctlps)
+			if sim.mem != nil {
+				pprof.WriteHeapProfile(sim.mem)
+			}
+			l := len(sim.ships) + len(sim.projs) + len(sim.astds) + len(sim.ctlps)
+
+			if cap(drawables) < l {
+				drawables = make([]Drawable, l)
+			}
+			i := 0
+			for _, d := range sim.ships {
+				drawables[i] = d
+				i++
+			}
+			//for _, d := range sim.projs {
+			//	drawables[i] = d
+			//	i++
+			//}
+			for _, d := range sim.astds {
+				drawables[i] = d
+				i++
+			}
+			for _, d := range sim.ctlps {
+				drawables[i] = d
+				i++
+			}
+			sim.stream.Draw(sim.scores, drawables[:i], sim.deleted)
+			sim.deleted = sim.deleted[0:0]
 		}
 	}
 	var fleet string
@@ -257,24 +303,24 @@ func (sim *Simulation) propagateObjects() {
 	sim.sectorSize = minSectorSize
 	for _, ship := range sim.ships {
 		glog.V(4).Infoln("S: ",
-			ship.GetPosition(),
-			ship.GetVelocity(),
-			ship.GetRadius(),
+			ship.Position(),
+			ship.Velocity(),
+			ship.Radius(),
 		)
 		sim.propagateObject(ship)
-		if r := int64(ship.GetRadius() * 2); r > sim.sectorSize {
+		if r := int64(ship.Radius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
 	}
 	for _, inrt := range sim.inrts {
 		sim.propagateObject(inrt)
-		if r := int64(inrt.GetRadius() * 2); r > sim.sectorSize {
+		if r := int64(inrt.Radius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
 	}
 	for _, proj := range sim.projs {
 		sim.propagateObject(proj)
-		if r := int64(proj.GetRadius() * 2); r > sim.sectorSize {
+		if r := int64(proj.Radius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
 		}
 	}
@@ -283,7 +329,7 @@ func (sim *Simulation) propagateObjects() {
 }
 
 func (sim *Simulation) propagateObject(obj Object) {
-	obj.setPosition(obj.GetPosition().Add(obj.GetVelocity().Mul(TimePerTick)))
+	obj.setPosition(obj.Position().Add(obj.Velocity().Mul(TimePerTick)))
 }
 
 func (sim *Simulation) collideObjects() {
@@ -297,7 +343,7 @@ func (sim *Simulation) collideObjects() {
 	glog.V(4).Infoln("#projs", len(sim.projs))
 	for i := 0; i < len(sim.ships); {
 		ship := sim.ships[i]
-		if ship.GetHealth() <= 0 || ship.GetPosition().Len() > float64(sim.radius) {
+		if ship.Health() <= 0 || ship.Position().Len() > float64(sim.radius) {
 			sim.removeShip(i)
 			continue
 		}
@@ -313,8 +359,9 @@ func (sim *Simulation) collideObjects() {
 	}
 	for i := 0; i < len(sim.projs); {
 		proj := sim.projs[i]
-		if proj.GetHealth() < 0 || proj.GetPosition().Len() > float64(sim.radius) {
+		if proj.Health() < 0 || proj.Position().Len() > float64(sim.radius) {
 			sim.projs = append(sim.projs[:i], sim.projs[i+1:]...)
+			sim.deleted = append(sim.deleted, proj.ID())
 			continue
 		}
 		sim.placeInSectors(proj, projSectors)
@@ -362,8 +409,8 @@ func (sim *Simulation) collideObjects() {
 }
 
 func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
-	pos := obj.GetPosition()
-	radius := obj.GetRadius() + obj.GetVelocity().Len()
+	pos := obj.Position()
+	radius := obj.Radius() + obj.Velocity().Len()
 
 	numSectors := sim.radius * 2 / sim.sectorSize
 	numSectors2 := numSectors * numSectors
@@ -392,15 +439,15 @@ func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
 
 func collide(obj1, obj2 Object, cor float64) bool {
 	// Convert to the moving reference frame of obj2
-	staticPos := obj2.GetPosition()
-	dynamicPos := obj1.GetPosition()
-	dynamicVel := obj1.GetVelocity().Sub(obj2.GetVelocity()).Mul(TimePerTick)
+	staticPos := obj2.Position()
+	dynamicPos := obj1.Position()
+	dynamicVel := obj1.Velocity().Sub(obj2.Velocity()).Mul(TimePerTick)
 	maxRange := dynamicVel.Len()
 
 	delta := staticPos.Sub(dynamicPos)
 	distance := delta.Len()
 
-	sumRadii := obj1.GetRadius() + obj2.GetRadius()
+	sumRadii := obj1.Radius() + obj2.Radius()
 	distanceRadii := distance - sumRadii
 	//Not close enough
 	if maxRange < distanceRadii {
@@ -445,11 +492,11 @@ func collide(obj1, obj2 Object, cor float64) bool {
 	ratio := travelDist / maxRange
 
 	//Place object next to each other at point of collision
-	v1 := obj1.GetVelocity().Mul(ratio * TimePerTick)
-	v2 := obj2.GetVelocity().Mul(ratio * TimePerTick)
+	v1 := obj1.Velocity().Mul(ratio * TimePerTick)
+	v2 := obj2.Velocity().Mul(ratio * TimePerTick)
 
-	obj1.setPosition(obj1.GetPosition().Add(v1))
-	obj2.setPosition(obj2.GetPosition().Add(v2))
+	obj1.setPosition(obj1.Position().Add(v1))
+	obj2.setPosition(obj2.Position().Add(v2))
 
 	//Resolve collision
 	resolveCollision(obj1, obj2, cor)
@@ -458,15 +505,15 @@ func collide(obj1, obj2 Object, cor float64) bool {
 }
 
 func resolveCollision(obj1, obj2 Object, cor float64) {
-	norm := obj1.GetPosition().Sub(obj2.GetPosition()).Normalize()
+	norm := obj1.Position().Sub(obj2.Position()).Normalize()
 
 	// inverse mass
-	im1 := 1.0 / obj1.GetMass()
-	im2 := 1.0 / obj2.GetMass()
+	im1 := 1.0 / obj1.Mass()
+	im2 := 1.0 / obj2.Mass()
 
 	// impact speed
-	v1 := obj1.GetVelocity()
-	v2 := obj2.GetVelocity()
+	v1 := obj1.Velocity()
+	v2 := obj2.Velocity()
 
 	v := v1.Sub(v2)
 	vn := v.Dot(norm)
@@ -477,8 +524,8 @@ func resolveCollision(obj1, obj2 Object, cor float64) {
 
 	damage := impulseToDamage * (elastic - actual)
 
-	obj1.setHealth(obj1.GetHealth() - damage)
-	obj2.setHealth(obj2.GetHealth() - damage)
+	obj1.setHealth(obj1.Health() - damage)
+	obj2.setHealth(obj2.Health() - damage)
 
 	obj1.setVelocity(v1.Add(impulse.Mul(im1)))
 	obj2.setVelocity(v2.Sub(impulse.Mul(im2)))

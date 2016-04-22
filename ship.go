@@ -2,9 +2,10 @@ package avi
 
 import (
 	"errors"
-	"github.com/go-gl/mathgl/mgl64"
 	"math"
 	"reflect"
+
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 var ErrOutOfEnergy = errors.New("out of energy")
@@ -38,7 +39,7 @@ type shipT struct {
 	currentEnergy float64
 }
 
-func newShip(id int64, sim *Simulation, fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
+func newShip(id ID, sim *Simulation, fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
 
 	newShip := &shipT{
 		sim:       sim,
@@ -66,6 +67,10 @@ func newShip(id int64, sim *Simulation, fleet string, pos mgl64.Vec3, pilot Pilo
 	return newShip, nil
 }
 
+func (ship *shipT) Texture() string {
+	return ship.texture
+}
+
 func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 	parts, err := ship.pilot.LinkParts(partsConf, ship.sim.availableParts)
 	if err != nil {
@@ -75,7 +80,7 @@ func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 		ship.parts = append(ship.parts, part)
 		part.setShip(ship)
 
-		ship.mass += part.GetMass()
+		ship.mass += part.Mass()
 
 		switch reflect.TypeOf(part) {
 		case thrusterType:
@@ -100,8 +105,8 @@ func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 			}
 			p1 := ship.parts[i]
 			p2 := ship.parts[j]
-			distance := p1.GetPosition().Sub(p2.GetPosition()).Len()
-			radii := p1.GetRadius() + p2.GetRadius()
+			distance := p1.Position().Sub(p2.Position()).Len()
+			radii := p1.Radius() + p2.Radius()
 			if radii > distance {
 				err := errors.New("Error: ship parts overlap")
 				return err
@@ -116,7 +121,7 @@ func (ship *shipT) determineSize() {
 	maxRadius := 0.0
 
 	for _, part := range ship.parts {
-		radius := part.GetPosition().Len() + part.GetRadius()
+		radius := part.Position().Len() + part.Radius()
 		if radius > maxRadius {
 			maxRadius = radius
 		}
@@ -150,7 +155,7 @@ func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
 }
 
 func (ship *shipT) ApplyAcc(dir mgl64.Vec3) {
-	ship.setVelocity(ship.GetVelocity().Add(dir.Mul(TimePerTick)))
+	ship.setVelocity(ship.Velocity().Add(dir.Mul(TimePerTick)))
 }
 
 func (ship *shipT) Tick() {

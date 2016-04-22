@@ -1,12 +1,13 @@
 package nathanielc
 
 import (
+	"math"
+	"math/rand"
+
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
 	"github.com/nathanielc/avi/nav"
-	"math"
-	"math/rand"
 )
 
 func init() {
@@ -21,10 +22,10 @@ type DubberHeadPilot struct {
 	fired         bool
 	navComputer   *nav.Nav
 	cooldownTicks int64
-	target        int64
+	target        avi.ID
 	targetI       velPoint
 	targetF       velPoint
-	ctlp          int64
+	ctlp          avi.ID
 	ctlpBias      mgl64.Vec3
 	ctlpBiasRand  *rand.Rand
 }
@@ -40,8 +41,8 @@ func NewDubberHead() avi.Pilot {
 	return &DubberHeadPilot{
 		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
-		target:        -1,
-		ctlp:          -1,
+		target:        avi.NilID,
+		ctlp:          avi.NilID,
 		ctlpBias:      (mgl64.Vec3{ctlpBiasRand.Float64(), ctlpBiasRand.Float64(), ctlpBiasRand.Float64()}).Normalize(),
 		ctlpBiasRand:  ctlpBiasRand,
 	}
@@ -136,7 +137,7 @@ func (self *DubberHeadPilot) fire(tick int64, scan *avi.ScanResult) {
 	targetVel := target.Velocity
 
 	if targetPos.Sub(scan.Position).Len() > 1e3 {
-		self.target = -1
+		self.target = avi.NilID
 		glog.V(3).Infoln("Target is too far away choosing another target")
 	}
 
@@ -204,12 +205,12 @@ func calcT(deltaPos, deltaVel mgl64.Vec3, va float64) float64 {
 	return t2
 }
 
-func ctlpExists(target int64, ctlps map[int64]avi.CtlPSR) bool {
+func ctlpExists(target avi.ID, ctlps map[avi.ID]avi.CtlPSR) bool {
 	_, ok := ctlps[target]
 	return ok
 }
 
-func shipExists(target int64, ships map[int64]avi.ShipSR) bool {
+func shipExists(target avi.ID, ships map[avi.ID]avi.ShipSR) bool {
 	_, ok := ships[target]
 	return ok
 }

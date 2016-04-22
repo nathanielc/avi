@@ -2,8 +2,9 @@ package avi
 
 import (
 	"errors"
-	"github.com/go-gl/mathgl/mgl64"
 	"math"
+
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 const detectionThreshold = 0.0
@@ -59,8 +60,8 @@ type ScanResult struct {
 	Mass          float64
 	Radius        float64
 	Health        float64
-	Ships         map[int64]ShipSR
-	ControlPoints map[int64]CtlPSR
+	Ships         map[ID]ShipSR
+	ControlPoints map[ID]CtlPSR
 }
 
 type ShipSR struct {
@@ -104,8 +105,8 @@ func (self *Sensor) Scan() (*ScanResult, error) {
 	return scan, nil
 }
 
-func (self *Sensor) searchShips() map[int64]ShipSR {
-	ships := make(map[int64]ShipSR, len(self.ship.sim.ships))
+func (self *Sensor) searchShips() map[ID]ShipSR {
+	ships := make(map[ID]ShipSR, len(self.ship.sim.ships))
 	for _, ship := range self.ship.sim.ships {
 		if ship == self.ship {
 			continue
@@ -116,7 +117,7 @@ func (self *Sensor) searchShips() map[int64]ShipSR {
 		i := self.intensity(distance)
 
 		if i > detectionThreshold {
-			ships[ship.GetID()] = ShipSR{
+			ships[ship.ID()] = ShipSR{
 				Fleet:    ship.fleet,
 				Position: ship.position,
 				Velocity: ship.velocity,
@@ -128,15 +129,15 @@ func (self *Sensor) searchShips() map[int64]ShipSR {
 	return ships
 }
 
-func (self *Sensor) searchCPs() map[int64]CtlPSR {
-	ctlps := make(map[int64]CtlPSR, len(self.ship.sim.ctlps))
+func (self *Sensor) searchCPs() map[ID]CtlPSR {
+	ctlps := make(map[ID]CtlPSR, len(self.ship.sim.ctlps))
 	for _, ctlp := range self.ship.sim.ctlps {
 		distance := ctlp.position.Sub(self.ship.position).Len()
 
 		i := self.intensity(distance)
 
 		if i > detectionThreshold {
-			ctlps[ctlp.GetID()] = CtlPSR{
+			ctlps[ctlp.ID()] = CtlPSR{
 				Position:  ctlp.position,
 				Velocity:  ctlp.velocity,
 				Radius:    ctlp.radius,

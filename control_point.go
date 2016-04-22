@@ -1,5 +1,7 @@
 package avi
 
+const controlPointTexture = "control_point"
+
 type controlPoint struct {
 	objectT
 	points    float64
@@ -14,7 +16,7 @@ type controlPointConf struct {
 	Influence float64
 }
 
-func NewControlPoint(id int64, conf controlPointConf) (*controlPoint, error) {
+func NewControlPoint(id ID, conf controlPointConf) (*controlPoint, error) {
 	pos, err := sliceToVec(conf.Position)
 	if err != nil {
 		return nil, err
@@ -29,4 +31,8 @@ func NewControlPoint(id int64, conf controlPointConf) (*controlPoint, error) {
 		points:    conf.Points,
 		influence: conf.Influence,
 	}, nil
+}
+
+func (controlPoint) Texture() string {
+	return controlPointTexture
 }
