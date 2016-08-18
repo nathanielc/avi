@@ -58,7 +58,9 @@ func main() {
 
 		s := snappy.NewReader(f)
 		updates := head.ProtoStreamUpdates(s)
-		head.Run(updates)
+		if err := head.Run(updates); err != nil {
+			log.Fatal(err)
+		}
 		return
 	}
 
@@ -115,7 +117,11 @@ func main() {
 	if *live {
 		ls := head.NewLiveStream()
 		drawer = head.NewProxyStream(drawer, ls)
-		go head.Run(ls.Updates())
+		go func() {
+			if err := head.Run(ls.Updates()); err != nil {
+				log.Fatal(err)
+			}
+		}()
 	}
 
 	sim, err := avi.NewSimulation(
