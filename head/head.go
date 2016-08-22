@@ -24,7 +24,25 @@ func init() {
 	flatShader, _ = gfxutil.OpenShader("head/models/flat")
 }
 
-func Run(updates <-chan FrameUpdate) {
+func Run(updates <-chan FrameUpdate) (err error) {
+	maxStartupRetries := 5
+	for maxStartupRetries > 0 {
+		if err = run(updates); err == nil {
+			// Technically run only returns if it errors, but this is for completeness
+			return
+		}
+		maxStartupRetries--
+	}
+	return
+}
+
+func run(updates <-chan FrameUpdate) (err error) {
+	defer func() {
+		r := recover()
+		if r != nil {
+			err = fmt.Errorf("starup error: %v", r)
+		}
+	}()
 	go func() {
 		// Create our window.
 		props := window.NewProps()
@@ -38,6 +56,7 @@ func Run(updates <-chan FrameUpdate) {
 		go gfxLoopWindow(w, r, updates)
 	}()
 	window.MainLoop()
+	return
 }
 
 func gfxLoopWindow(w window.Window, d gfx.Device, updates <-chan FrameUpdate) {

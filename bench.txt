@@ -1,9 +1,0 @@
-PASS
-BenchmarkLoop	 2000000	       913 ns/op
-ok  	github.com/nathanielc/avi	2.759s
-?   	github.com/nathanielc/avi/avi	[no test files]
-?   	github.com/nathanielc/avi/head	[no test files]
-?   	github.com/nathanielc/avi/jac	[no test files]
-?   	github.com/nathanielc/avi/nathanielc	[no test files]
-?   	github.com/nathanielc/avi/nav	[no test files]
-?   	github.com/nathanielc/avi/ships	[no test files]
