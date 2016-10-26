@@ -40,6 +40,11 @@ type Simulation struct {
 	deleted   []ID
 	rate      int64
 	mem       io.Writer
+
+	sectorsList map[int64]bool
+	othrSectors map[int64][]Object
+	projSectors map[int64][]Object
+	objListPool objectListPool
 }
 
 func NewSimulation(
@@ -66,6 +71,9 @@ func NewSimulation(
 		maxTicks:       maxTicks,
 		stream:         stream,
 		mem:            mem,
+		sectorsList:    make(map[int64]bool),
+		othrSectors:    make(map[int64][]Object),
+		projSectors:    make(map[int64][]Object),
 	}
 	// Add Control Points
 	for _, cp := range mp.ControlPoints {
@@ -231,10 +239,10 @@ func (sim *Simulation) loop() (string, float64) {
 				drawables[i] = d
 				i++
 			}
-			//for _, d := range sim.projs {
-			//	drawables[i] = d
-			//	i++
-			//}
+			for _, d := range sim.projs {
+				drawables[i] = d
+				i++
+			}
 			for _, d := range sim.astds {
 				drawables[i] = d
 				i++
@@ -329,7 +337,9 @@ func (sim *Simulation) propagateObjects() {
 }
 
 func (sim *Simulation) propagateObject(obj Object) {
-	obj.setPosition(obj.Position().Add(obj.Velocity().Mul(TimePerTick)))
+	if obj != nil {
+		obj.setPosition(obj.Position().Add(obj.Velocity().Mul(TimePerTick)))
+	}
 }
 
 func (sim *Simulation) collideObjects() {
@@ -337,107 +347,45 @@ func (sim *Simulation) collideObjects() {
 	const OO_COR = 0.7
 	const PO_COR = 0.1
 
-	othrSectors := make(map[int64][]Object)
-	projSectors := make(map[int64][]Object)
-	glog.V(4).Infoln("#ships", len(sim.ships))
-	glog.V(4).Infoln("#projs", len(sim.projs))
-	for i := 0; i < len(sim.ships); {
-		ship := sim.ships[i]
-		if ship.Health() <= 0 || ship.Position().Len() > float64(sim.radius) {
-			sim.removeShip(i)
-			continue
+	for _, ship0 := range sim.ships {
+		// Collide ships with ships
+		for _, ship1 := range sim.ships {
+			collide(ship0, ship1, OO_COR)
 		}
-		glog.V(4).Infoln(i, ship)
-		sim.placeInSectors(ship, othrSectors)
-		i++
-	}
-	for i := 0; i < len(sim.inrts); {
-		inrt := sim.inrts[i]
-		glog.V(4).Infoln(i, inrt)
-		sim.placeInSectors(inrt, othrSectors)
-		i++
-	}
-	for i := 0; i < len(sim.projs); {
-		proj := sim.projs[i]
-		if proj.Health() < 0 || proj.Position().Len() > float64(sim.radius) {
-			sim.projs = append(sim.projs[:i], sim.projs[i+1:]...)
-			sim.deleted = append(sim.deleted, proj.ID())
-			continue
+		// Collide ships with interts
+		for _, inrt := range sim.inrts {
+			collide(ship0, inrt, OO_COR)
 		}
-		sim.placeInSectors(proj, projSectors)
-		i++
 	}
-	glog.V(4).Infoln(othrSectors)
-	glog.V(4).Infoln(projSectors)
-
-	for _, sector := range othrSectors {
-		l := len(sector)
-	othrothr:
-		for i := 0; i < l; i++ {
-			othr1 := sector[i]
-			for j := i + 1; j < l; j++ {
-				othr2 := sector[j]
-				if othr1 == othr2 {
-					continue
-				}
-				if collide(othr1, othr2, OO_COR) {
-					continue othrothr
-				}
+	// Collide inerts with inerts
+	for _, i0 := range sim.inrts {
+		for _, i1 := range sim.inrts {
+			collide(i0, i1, OO_COR)
+		}
+	}
+	// Projectiles call only collide once
+	glog.V(4).Infoln("Colliding projectiles", len(sim.projs))
+projectiles:
+	for _, p := range sim.projs {
+		// Collide projectiles with ships
+		for _, ship := range sim.ships {
+			if collide(p, ship, PO_COR) {
+				continue projectiles
+			}
+		}
+		// Collide projectiles with inerts
+		for _, inrt := range sim.inrts {
+			if collide(p, inrt, PO_COR) {
+				continue projectiles
 			}
 		}
 	}
-	for sectorIndex, othrs := range othrSectors {
-		projs := projSectors[sectorIndex]
-		numothrs := len(othrs)
-		numProj := len(projs)
-
-		if numProj == 0 {
-			continue
-		}
-
-	projothr:
-		for i := 0; i < numothrs; i++ {
-			othr := othrs[i]
-			for j := 0; j < numProj; j++ {
-				proj := projs[j].(*projectile)
-				if collide(proj, othr, PO_COR) {
-					continue projothr
-				}
-			}
-		}
-	}
-}
-
-func (sim *Simulation) placeInSectors(obj Object, sectors map[int64][]Object) {
-	pos := obj.Position()
-	radius := obj.Radius() + obj.Velocity().Len()
-
-	numSectors := sim.radius * 2 / sim.sectorSize
-	numSectors2 := numSectors * numSectors
-	glog.V(4).Infoln("#S:", numSectors)
-
-	sectorsList := make(map[int64]bool)
-	for i := -1; i <= 1; i++ {
-		for j := -1; j <= 1; j++ {
-			for k := -1; k <= 1; k++ {
-				x := int64(pos[0]+radius*float64(i)) / sim.sectorSize
-				y := int64(pos[1]+radius*float64(j)) / sim.sectorSize
-				z := int64(pos[2]+radius*float64(k)) / sim.sectorSize
-
-				index := x + y*numSectors + z*numSectors2
-
-				if !sectorsList[index] {
-					sectorsList[index] = true
-					sectors[index] = append(sectors[index], obj)
-				}
-			}
-		}
-	}
-
-	glog.V(4).Infoln("Placed in sectors:", sectorsList)
 }
 
 func collide(obj1, obj2 Object, cor float64) bool {
+	if obj1 == obj2 {
+		return false
+	}
 	// Convert to the moving reference frame of obj2
 	staticPos := obj2.Position()
 	dynamicPos := obj1.Position()
@@ -529,4 +477,21 @@ func resolveCollision(obj1, obj2 Object, cor float64) {
 
 	obj1.setVelocity(v1.Add(impulse.Mul(im1)))
 	obj2.setVelocity(v2.Sub(impulse.Mul(im2)))
+}
+
+type objectListPool struct {
+	pool [][]Object
+}
+
+func (p objectListPool) get() []Object {
+	if l := len(p.pool); l > 0 {
+		o := p.pool[l-1]
+		p.pool = p.pool[:l-1]
+		return o[0:0]
+	}
+	return make([]Object, 0, 100)
+}
+
+func (p objectListPool) put(o []Object) {
+	p.pool = append(p.pool, o)
 }
