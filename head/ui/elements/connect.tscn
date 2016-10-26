@@ -1,0 +1,54 @@
+[gd_scene load_steps=5 format=1]
+
+[ext_resource path="res://ui/elements/connect.gd" type="Script" id=1]
+[ext_resource path="res://ui/images/gear.png" type="Texture" id=2]
+[ext_resource path="res://ui/images/gear_pressed.png" type="Texture" id=3]
+[ext_resource path="res://ui/images/gear_hover.png" type="Texture" id=4]
+
+[node name="Control" type="Control"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 40.0
+margin/bottom = 40.0
+script/script = ExtResource( 1 )
+
+[node name="status" type="Label" parent="."]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 0.0
+margin/top = 70.0
+margin/right = 88.0
+margin/bottom = 84.0
+text = "Disconnected"
+align = 1
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="configure" type="TextureButton" parent="."]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 10.0
+margin/top = 0.0
+margin/right = 74.0
+margin/bottom = 64.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+textures/normal = ExtResource( 2 )
+textures/pressed = ExtResource( 3 )
+textures/hover = ExtResource( 4 )
+params/scale = Vector2( 0.25, 0.25 )
+
+

@@ -17,7 +17,7 @@ func (self *GenericPilot) JoinFleet(fleet string) {
 	self.Fleet = fleet
 }
 
-func (self *GenericPilot) LinkParts(shipParts []ShipPartConf, availableParts *PartsConf) ([]Part, error) {
+func (self *GenericPilot) LinkParts(shipParts []ShipPartConf, availableParts PartSetConf) ([]Part, error) {
 	parts := make([]Part, 0)
 	self.Engines = make([]*Engine, 0)
 	self.Thrusters = make([]*Thruster, 0)

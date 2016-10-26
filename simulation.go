@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-gl/mathgl/mgl64"
+	"azul3d.org/engine/lmath"
 	"github.com/golang/glog"
 )
 
 const minSectorSize = 100
-const TimePerTick = 1e-3
+const SecondsPerTick = 1e-3
 const small = 1e-6
 
 const impulseToDamage = 0.25
@@ -32,30 +32,34 @@ type Simulation struct {
 	scores    map[string]float64
 	maxScore  float64
 	//Available parts
-	availableParts *PartsConf
+	availableParts PartSetConf
 	//ID counter
 	idCounter ID
 	stream    Drawer
-	deleted   []ID
-	rate      int64
 
+	added   map[ID]Drawable
+	deleted []ID
+
+	rate int64
+
+	mu sync.Mutex
 	// Ships tick wait group
 	shipWG sync.WaitGroup
 }
 
 func NewSimulation(
-	mp *MapConf,
-	parts *PartsConf,
-	fleets []*FleetConf,
+	mp MapConf,
+	parts PartSetConf,
+	fleets []FleetConf,
 	stream Drawer,
 	maxTime time.Duration,
 	fps int64,
 ) (*Simulation, error) {
-	rate := int64(1.0 / (TimePerTick * float64(fps)))
+	rate := int64(1.0 / (SecondsPerTick * float64(fps)))
 	if rate < 1 {
 		rate = 1
 	}
-	maxTicks := int64(float64(maxTime/time.Second) / float64(TimePerTick))
+	maxTicks := int64(float64(maxTime/time.Second) / float64(SecondsPerTick))
 	sim := &Simulation{
 		radius:         mp.Radius,
 		availableParts: parts,
@@ -65,6 +69,7 @@ func NewSimulation(
 		rate:           rate,
 		maxTicks:       maxTicks,
 		stream:         stream,
+		added:          make(map[ID]Drawable),
 	}
 	// Add Control Points
 	for _, cp := range mp.ControlPoints {
@@ -99,12 +104,13 @@ func (sim *Simulation) getNextID() ID {
 	return id
 }
 
-func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
+func (sim *Simulation) AddShip(fleet string, pos lmath.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
 	ship, err := newShip(sim.getNextID(), sim, fleet, pos, pilot, conf)
 	if err != nil {
 		return nil, err
 	}
 	sim.ships = append(sim.ships, ship)
+	sim.added[ship.id] = ship
 
 	sim.survivors[fleet]++
 	return ship, nil
@@ -118,7 +124,7 @@ func (sim *Simulation) removeShip(i int) {
 	sim.survivors[ship.fleet]--
 }
 
-func (sim *Simulation) addProjectile(pos, vel mgl64.Vec3, mass, radius float64) {
+func (sim *Simulation) addProjectile(pos, vel lmath.Vec3, mass, radius float64) {
 	p := &projectile{
 		objectT{
 			id:       sim.getNextID(),
@@ -128,10 +134,13 @@ func (sim *Simulation) addProjectile(pos, vel mgl64.Vec3, mass, radius float64) 
 			radius:   radius,
 		},
 	}
+	sim.mu.Lock()
 	sim.projs = append(sim.projs, p)
+	sim.added[p.id] = p
+	sim.mu.Unlock()
 }
 
-func (sim *Simulation) addControlPoint(cpConf controlPointConf) {
+func (sim *Simulation) addControlPoint(cpConf ControlPointConf) {
 
 	cp, err := NewControlPoint(sim.getNextID(), cpConf)
 	if err != nil {
@@ -141,10 +150,10 @@ func (sim *Simulation) addControlPoint(cpConf controlPointConf) {
 
 	sim.inrts = append(sim.inrts, cp)
 	sim.ctlps = append(sim.ctlps, cp)
-
+	sim.added[cp.id] = cp
 }
 
-func (sim *Simulation) addAsteroid(aConf asteroidConf) {
+func (sim *Simulation) addAsteroid(aConf AsteroidConf) {
 
 	as, err := NewAsteroid(sim.getNextID(), aConf)
 	if err != nil {
@@ -154,11 +163,11 @@ func (sim *Simulation) addAsteroid(aConf asteroidConf) {
 
 	sim.inrts = append(sim.inrts, as)
 	sim.astds = append(sim.astds, as)
-
+	sim.added[as.id] = as
 }
 
-// Adds a fleet to the simulation based on a given fleet config
-func (sim *Simulation) addFleet(center mgl64.Vec3, fleet *FleetConf, maxMass float64) error {
+// Adds a fleet to the imulation based on a given fleet config
+func (sim *Simulation) addFleet(center lmath.Vec3, fleet FleetConf, maxMass float64) error {
 
 	fleetMass := 0.0
 
@@ -213,34 +222,44 @@ func (sim *Simulation) loop() (string, float64) {
 	cont := true
 	score := 0.0
 	maxTicks := sim.maxTicks
-	var drawables []Drawable
+	glog.Infoln("MaxTicks", maxTicks)
+	tickPerSecond := int64(1 / float64(SecondsPerTick))
+	var added, existing []Drawable
 	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < sim.maxScore) && len(sim.ships) > 0 {
+		if sim.tick%tickPerSecond == 0 {
+			glog.Infoln("TICK:", sim.tick)
+		}
 		score, cont = sim.doTick()
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
-			l := len(sim.ships) + len(sim.projs) + len(sim.astds) + len(sim.ctlps)
-
-			if cap(drawables) < l {
-				drawables = make([]Drawable, l)
-			}
-			i := 0
 			for _, d := range sim.ships {
-				drawables[i] = d
-				i++
+				if _, ok := sim.added[d.id]; !ok {
+					existing = append(existing, d)
+				}
 			}
 			for _, d := range sim.projs {
-				drawables[i] = d
-				i++
+				if _, ok := sim.added[d.id]; !ok {
+					existing = append(existing, d)
+				}
 			}
 			for _, d := range sim.astds {
-				drawables[i] = d
-				i++
+				if _, ok := sim.added[d.id]; !ok {
+					existing = append(existing, d)
+				}
 			}
 			for _, d := range sim.ctlps {
-				drawables[i] = d
-				i++
+				if _, ok := sim.added[d.id]; !ok {
+					existing = append(existing, d)
+				}
 			}
-			sim.stream.Draw(sim.scores, drawables[:i], sim.deleted)
+			// collect added
+			for id, d := range sim.added {
+				added = append(added, d)
+				delete(sim.added, id)
+			}
+			sim.stream.Draw(sim.scores, added, existing, sim.deleted)
 			sim.deleted = sim.deleted[0:0]
+			added = added[0:0]
+			existing = existing[0:0]
 		}
 	}
 	var fleet string
@@ -266,10 +285,11 @@ func (sim *Simulation) doTick() (float64, bool) {
 func (sim *Simulation) scoreFleets() float64 {
 	score := 0.0
 	for _, cp := range sim.ctlps {
+		influence2 := cp.influence * cp.influence
 		for _, ship := range sim.ships {
-			distance := cp.position.Sub(ship.position).Len()
-			if distance < cp.influence {
-				sim.scores[ship.fleet] += cp.points * TimePerTick
+			distance2 := cp.position.Sub(ship.position).LengthSq()
+			if distance2 < influence2 {
+				sim.scores[ship.fleet] += cp.points * SecondsPerTick
 			}
 			if s := sim.scores[ship.fleet]; s > score {
 				score = s
@@ -327,7 +347,7 @@ func (sim *Simulation) propagateObjects() {
 
 func (sim *Simulation) propagateObject(obj Object) {
 	if obj != nil {
-		obj.setPosition(obj.Position().Add(obj.Velocity().Mul(TimePerTick)))
+		obj.setPosition(obj.Position().Add(obj.Velocity().MulScalar(SecondsPerTick)))
 	}
 }
 
@@ -352,10 +372,11 @@ func (sim *Simulation) collideObjects() {
 			collide(i0, i1, OO_COR)
 		}
 	}
-	// Projectiles call only collide once
 	if glog.V(4) {
 		glog.Infoln("Colliding projectiles", len(sim.projs))
 	}
+
+	// Projectiles call only collide once
 projectiles:
 	for _, p := range sim.projs {
 		// Collide projectiles with ships
@@ -380,11 +401,11 @@ func collide(obj1, obj2 Object, cor float64) bool {
 	// Convert to the moving reference frame of obj2
 	staticPos := obj2.Position()
 	dynamicPos := obj1.Position()
-	dynamicVel := obj1.Velocity().Sub(obj2.Velocity()).Mul(TimePerTick)
-	maxRange := dynamicVel.Len()
+	dynamicVel := obj1.Velocity().Sub(obj2.Velocity()).MulScalar(SecondsPerTick)
+	maxRange := dynamicVel.Length()
 
 	delta := staticPos.Sub(dynamicPos)
-	distance := delta.Len()
+	distance := delta.Length()
 
 	sumRadii := obj1.Radius() + obj2.Radius()
 	distanceRadii := distance - sumRadii
@@ -397,7 +418,7 @@ func collide(obj1, obj2 Object, cor float64) bool {
 		//	return true
 	}
 
-	norm := dynamicVel.Normalize()
+	norm, _ := dynamicVel.Normalized()
 
 	direction := norm.Dot(delta)
 	// Going the wrong direction
@@ -431,8 +452,8 @@ func collide(obj1, obj2 Object, cor float64) bool {
 	ratio := travelDist / maxRange
 
 	//Place object next to each other at point of collision
-	v1 := obj1.Velocity().Mul(ratio * TimePerTick)
-	v2 := obj2.Velocity().Mul(ratio * TimePerTick)
+	v1 := obj1.Velocity().MulScalar(ratio * SecondsPerTick)
+	v2 := obj2.Velocity().MulScalar(ratio * SecondsPerTick)
 
 	obj1.setPosition(obj1.Position().Add(v1))
 	obj2.setPosition(obj2.Position().Add(v2))
@@ -444,7 +465,7 @@ func collide(obj1, obj2 Object, cor float64) bool {
 }
 
 func resolveCollision(obj1, obj2 Object, cor float64) {
-	norm := obj1.Position().Sub(obj2.Position()).Normalize()
+	norm, _ := obj1.Position().Sub(obj2.Position()).Normalized()
 
 	// inverse mass
 	im1 := 1.0 / obj1.Mass()
@@ -459,13 +480,13 @@ func resolveCollision(obj1, obj2 Object, cor float64) {
 
 	actual := (-(1.0 + cor) * vn) / (im1 + im2)
 	elastic := (-2.0 * vn) / (im1 + im2)
-	impulse := norm.Mul(actual)
+	impulse := norm.MulScalar(actual)
 
 	damage := impulseToDamage * (elastic - actual)
 
 	obj1.setHealth(obj1.Health() - damage)
 	obj2.setHealth(obj2.Health() - damage)
 
-	obj1.setVelocity(v1.Add(impulse.Mul(im1)))
-	obj2.setVelocity(v2.Sub(impulse.Mul(im2)))
+	obj1.setVelocity(v1.Add(impulse.MulScalar(im1)))
+	obj2.setVelocity(v2.Sub(impulse.MulScalar(im2)))
 }

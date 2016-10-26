@@ -1,11 +1,10 @@
 package nathanielc
 
 import (
-	"github.com/go-gl/mathgl/mgl64"
+	"azul3d.org/engine/lmath"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
 	"github.com/nathanielc/avi/nav"
-	//"math"
 )
 
 func init() {
@@ -21,6 +20,9 @@ type OatmealPilot struct {
 }
 
 func NewOatmeal() avi.Pilot {
+	if glog.V(4) {
+		glog.Infoln("New OATMEAL")
+	}
 	return &OatmealPilot{
 		targetVel: 9,
 	}
@@ -30,30 +32,33 @@ func (self *OatmealPilot) Tick(tick int64) {
 	if self.navComputer == nil {
 		self.navComputer = nav.NewNav(self.Thrusters)
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  mgl64.Vec3{0, 800, 100},
+			Position:  lmath.Vec3{0, 800, 100},
 			MaxSpeed:  50,
 			Tolerance: 10,
 		})
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  mgl64.Vec3{0, 600, 0},
+			Position:  lmath.Vec3{0, 600, 0},
 			MaxSpeed:  40,
 			Tolerance: 10,
 		})
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  mgl64.Vec3{0, 500, 0},
+			Position:  lmath.Vec3{0, 500, 0},
 			MaxSpeed:  20,
 			Tolerance: 10,
 		})
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  mgl64.Vec3{0, 100, 0},
+			Position:  lmath.Vec3{0, 100, 0},
 			MaxSpeed:  self.targetVel * 2.0,
 			Tolerance: 10,
 		})
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  mgl64.Vec3{0, 0, 0},
+			Position:  lmath.Vec3{0, 0, 0},
 			MaxSpeed:  self.targetVel * 2.0,
 			Tolerance: 10,
 		})
+		if glog.V(4) {
+			glog.Infoln("Initialized nav")
+		}
 	}
 	if self.maxForce == 0.0 {
 		for _, thruster := range self.Thrusters {
@@ -80,6 +85,9 @@ func (self *OatmealPilot) Tick(tick int64) {
 	err = self.navComputer.Tick(scan.Position, scan.Velocity)
 	if err == nav.NoMoreWaypoints {
 		//Perform orbit manuver
+		if glog.V(5) {
+			glog.Infoln("Perform orbit manuver")
+		}
 		self.orbit(scan)
 	} else if err != nil {
 		if glog.V(4) {
@@ -97,7 +105,7 @@ func (self *OatmealPilot) Tick(tick int64) {
 func (self *OatmealPilot) orbit(scan avi.ScanResult) {
 
 	ctlp := scan.ControlPoints[self.ctlp]
-	vel := scan.Velocity.Len()
+	vel := scan.Velocity.Length()
 	force := scan.Mass * vel * vel / (ctlp.Radius)
 
 	if force > self.maxForce {
@@ -105,9 +113,9 @@ func (self *OatmealPilot) orbit(scan avi.ScanResult) {
 			glog.Infof("Not enough thruster force to have stable orbit, max: %f needed: %f", self.maxForce, force)
 		}
 	}
-
-	accerlation := ctlp.Position.Sub(scan.Position).Normalize().Mul(force / scan.Mass)
-	scaled := accerlation.Mul(1.0 / float64(len(self.Thrusters)))
+	n, _ := ctlp.Position.Sub(scan.Position).Normalized()
+	accerlation := n.MulScalar(force / scan.Mass)
+	scaled := accerlation.MulScalar(1.0 / float64(len(self.Thrusters)))
 	for _, thruster := range self.Thrusters {
 		thruster.Thrust(scaled)
 	}

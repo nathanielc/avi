@@ -2,27 +2,20 @@ package main
 
 import (
 	"flag"
-	"log"
 	"os"
+	"os/user"
+	"path"
 	"runtime/pprof"
-	"time"
 
 	"github.com/golang/glog"
-	"github.com/golang/snappy"
-	"github.com/nathanielc/avi"
-	"github.com/nathanielc/avi/head"
+	"github.com/nathanielc/avi/server"
 	_ "github.com/nathanielc/avi/ships"
 )
 
-var partsFile = flag.String("parts", "parts.yaml", "YAML file where available parts are defined.")
-var mapFile = flag.String("map", "map.yaml", "YAML file that defines the map.")
-var saveFile = flag.String("save", "save.avi", "Where to save the simulation data.")
-var maxTime = flag.Duration("max-time", 20*time.Minute, "Optional maximum time to simulate, (note this is simulation time not real time).")
-var simFPS = flag.Int("fps", 60, "Target FPS")
-var live = flag.Bool("live", false, "whether to display the simulation live.")
 var cpuProfile = flag.String("cpuprofile", "", "if defined save a cpu profile to path.")
 var memProfile = flag.String("memprofile", "", "if defined save a mem profile to path.")
-var replay = flag.String("replay", "", "if defined load save file and replay it")
+var bindAddr = flag.String("bind", "localhost:4242", "Network bind address")
+var dataDir = flag.String("data", "", "Data directory.")
 
 func main() {
 
@@ -31,7 +24,7 @@ func main() {
 	if *cpuProfile != "" {
 		f, err := os.Create(*cpuProfile)
 		if err != nil {
-			log.Fatal(err)
+			glog.Fatal(err)
 		}
 		defer f.Close()
 		pprof.StartCPUProfile(f)
@@ -41,98 +34,39 @@ func main() {
 	if *memProfile != "" {
 		f, err := os.Create(*memProfile)
 		if err != nil {
-			log.Fatal(err, 0)
+			glog.Fatal(err)
 		}
 		defer f.Close()
 		defer pprof.Lookup("heap").WriteTo(f, 0)
 	}
 
-	if *replay != "" {
-		f, err := os.Open(*replay)
+	dir := *dataDir
+	if dir == "" {
+		h, err := getHomeDir()
 		if err != nil {
-			log.Fatal(err)
+			glog.Fatal(err)
 		}
-		defer f.Close()
-
-		s := snappy.NewReader(f)
-		updates := head.ProtoStreamUpdates(s)
-		if err := head.Run(updates); err != nil {
-			log.Fatal(err)
-		}
-		return
+		dir = path.Join(h, ".avi")
 	}
-
-	// Load parts
-	pf, err := os.Open(*partsFile)
+	server, err := server.New(server.ServerConf{
+		Addr:    *bindAddr,
+		DataDir: dir,
+	})
 	if err != nil {
 		glog.Error(err)
 		return
 	}
-	defer pf.Close()
-	parts, err := avi.LoadPartsFromFile(pf)
+	defer server.Close()
+	err = server.Serve()
 	if err != nil {
 		glog.Error(err)
-		return
 	}
+}
 
-	// Load map
-	mf, err := os.Open(*mapFile)
+func getHomeDir() (string, error) {
+	u, err := user.Current()
 	if err != nil {
-		glog.Error(err)
-		return
+		return "", err
 	}
-	defer mf.Close()
-	mp, err := avi.LoadMapFromFile(mf)
-	if err != nil {
-		glog.Error(err)
-		return
-	}
-
-	// Load fleets
-	fleetFiles := flag.Args()
-	fleets := make([]*avi.FleetConf, 0, len(fleetFiles))
-	for _, fleetFile := range fleetFiles {
-		ff, err := os.Open(fleetFile)
-		if err != nil {
-			glog.Error(err)
-			return
-		}
-		defer ff.Close()
-		fleet, err := avi.LoadFleetFromFile(ff)
-		if err != nil {
-			glog.Error(err)
-			return
-		}
-
-		fleets = append(fleets, fleet)
-	}
-
-	var drawer avi.Drawer
-	f, _ := os.Create(*saveFile)
-	defer f.Close()
-	s := snappy.NewBufferedWriter(f)
-	drawer = head.NewProtoStream(s, *simFPS)
-	if *live {
-		ls := head.NewLiveStream()
-		drawer = head.NewProxyStream(drawer, ls)
-		go func() {
-			if err := head.Run(ls.Updates()); err != nil {
-				log.Fatal(err)
-			}
-		}()
-	}
-
-	sim, err := avi.NewSimulation(
-		mp,
-		parts,
-		fleets,
-		drawer,
-		*maxTime,
-		int64(*simFPS),
-	)
-	if err != nil {
-		glog.Error(err)
-		return
-	}
-	sim.Start()
+	return u.HomeDir, nil
 }

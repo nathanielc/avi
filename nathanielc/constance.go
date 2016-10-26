@@ -1,7 +1,7 @@
 package nathanielc
 
 import (
-	"github.com/go-gl/mathgl/mgl64"
+	"azul3d.org/engine/lmath"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
 )
@@ -34,7 +34,7 @@ func (self *ConstancePilot) Tick(tick int64) {
 	}
 
 	for _, thruster := range self.Thrusters {
-		err := thruster.Thrust(mgl64.Vec3{0, 0, 1e4})
+		err := thruster.Thrust(lmath.Vec3{0, 0, 1e4})
 		if err != nil {
 			if glog.V(3) {
 				glog.Infoln("Failed to thrust", err)

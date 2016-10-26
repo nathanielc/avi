@@ -2,7 +2,8 @@ package avi
 
 import (
 	"errors"
-	"github.com/go-gl/mathgl/mgl64"
+
+	"azul3d.org/engine/lmath"
 )
 
 type Thruster struct {
@@ -13,13 +14,13 @@ type Thruster struct {
 
 // Conf format for loading thrusters from a file
 type ThrusterConf struct {
-	Mass   float64
-	Radius float64
-	Force  float64
-	Energy float64
+	Mass   float64 `yaml:"mass" json:"mass"`
+	Radius float64 `yaml:"radius" json:"radius"`
+	Force  float64 `yaml:"force" json:"force"`
+	Energy float64 `yaml:"energy" json:"energy"`
 }
 
-func NewThruster001(pos mgl64.Vec3) *Thruster {
+func NewThruster001(pos lmath.Vec3) *Thruster {
 	return &Thruster{
 		partT: partT{
 			objectT: objectT{
@@ -33,7 +34,7 @@ func NewThruster001(pos mgl64.Vec3) *Thruster {
 	}
 }
 
-func NewThrusterFromConf(pos mgl64.Vec3, conf ThrusterConf) *Thruster {
+func NewThrusterFromConf(pos lmath.Vec3, conf ThrusterConf) *Thruster {
 	return &Thruster{
 		partT: partT{
 			objectT: objectT{
@@ -54,13 +55,13 @@ func (self *Thruster) GetForce() float64 {
 // Fire the thruster the length of dir indicates how hard
 // to fire the thruster. The length should equal to the
 // accerlation to apply to the ship.
-func (self *Thruster) Thrust(dir mgl64.Vec3) error {
+func (self *Thruster) Thrust(dir lmath.Vec3) error {
 	if self.used {
 		return errors.New("Already used thruster this tick")
 	}
 	self.used = true
 
-	force := self.ship.mass * dir.Len()
+	force := self.ship.mass * dir.Length()
 	if force > self.force {
 		force = self.force
 	}
@@ -69,6 +70,7 @@ func (self *Thruster) Thrust(dir mgl64.Vec3) error {
 	if err != nil {
 		return err
 	}
-	self.ship.ApplyAcc(dir.Normalize().Mul(force / self.ship.mass))
+	n, _ := dir.Normalized()
+	self.ship.ApplyAcc(n.MulScalar(force / self.ship.mass))
 	return nil
 }

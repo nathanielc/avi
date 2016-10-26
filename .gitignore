@@ -36,3 +36,7 @@ arenas/*/game*
 
 # Pprof
 *.out
+
+
+/data/replays
+/head_deploy

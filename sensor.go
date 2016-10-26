@@ -5,7 +5,7 @@ import (
 	"math"
 	"sync"
 
-	"github.com/go-gl/mathgl/mgl64"
+	"azul3d.org/engine/lmath"
 )
 
 const detectionThreshold = 0.0
@@ -24,13 +24,13 @@ type Sensor struct {
 
 // Conf format for loading engines from a file
 type SensorConf struct {
-	Mass   float64
-	Radius float64
-	Energy float64
-	Power  float64
+	Mass   float64 `yaml:"mass" json:"mass"`
+	Radius float64 `yaml:"radius" json:"radius"`
+	Energy float64 `yaml:"energy" json:"energy"`
+	Power  float64 `yaml:"power" json:"power"`
 }
 
-func NewSensor001(pos mgl64.Vec3) *Sensor {
+func NewSensor001(pos lmath.Vec3) *Sensor {
 	return &Sensor{
 		partT: partT{
 			objectT: objectT{
@@ -46,7 +46,7 @@ func NewSensor001(pos mgl64.Vec3) *Sensor {
 	}
 }
 
-func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
+func NewSensorFromConf(pos lmath.Vec3, conf SensorConf) *Sensor {
 	return &Sensor{
 		partT: partT{
 			objectT: objectT{
@@ -63,8 +63,8 @@ func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 }
 
 type ScanResult struct {
-	Position      mgl64.Vec3
-	Velocity      mgl64.Vec3
+	Position      lmath.Vec3
+	Velocity      lmath.Vec3
 	Mass          float64
 	Radius        float64
 	Health        float64
@@ -91,15 +91,15 @@ func (sr ScanResult) Done() {
 }
 
 type ShipSR struct {
-	Position mgl64.Vec3
-	Velocity mgl64.Vec3
+	Position lmath.Vec3
+	Velocity lmath.Vec3
 	Radius   float64
 	Fleet    string
 }
 
 type CtlPSR struct {
-	Position  mgl64.Vec3
-	Velocity  mgl64.Vec3
+	Position  lmath.Vec3
+	Velocity  lmath.Vec3
 	Radius    float64
 	Points    float64
 	Influence float64
@@ -140,9 +140,9 @@ func (self *Sensor) searchShips() map[ID]ShipSR {
 			continue
 		}
 
-		distance := ship.position.Sub(self.ship.position).Len()
+		distance2 := ship.position.Sub(self.ship.position).LengthSq()
 
-		i := self.intensity(distance)
+		i := self.intensity(distance2)
 
 		if i > detectionThreshold {
 			ships[ship.ID()] = ShipSR{
@@ -160,9 +160,9 @@ func (self *Sensor) searchShips() map[ID]ShipSR {
 func (self *Sensor) searchCPs() map[ID]CtlPSR {
 	ctlps := self.ctlps.Get().(map[ID]CtlPSR)
 	for _, ctlp := range self.ship.sim.ctlps {
-		distance := ctlp.position.Sub(self.ship.position).Len()
+		distance2 := ctlp.position.Sub(self.ship.position).LengthSq()
 
-		i := self.intensity(distance)
+		i := self.intensity(distance2)
 
 		if i > detectionThreshold {
 			ctlps[ctlp.ID()] = CtlPSR{
@@ -178,7 +178,7 @@ func (self *Sensor) searchCPs() map[ID]CtlPSR {
 	return ctlps
 }
 
-func (self *Sensor) intensity(r float64) float64 {
-	area := 4 * math.Pi * r * r
+func (self *Sensor) intensity(r2 float64) float64 {
+	area := 4 * math.Pi * r2
 	return self.power / area
 }
