@@ -2,6 +2,7 @@ package nav
 
 import (
 	"errors"
+
 	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
@@ -18,33 +19,43 @@ type Waypoint struct {
 type Nav struct {
 	thrusters []*avi.Thruster
 	waypoints queue
-	next      *Waypoint
+	set       bool
+	next      Waypoint
 }
 
 func NewNav(thrusters []*avi.Thruster) *Nav {
 	return &Nav{
 		thrusters: thrusters,
-		waypoints: queue{nodes: make([]*Waypoint, 5)},
+		waypoints: queue{nodes: make([]Waypoint, 5)},
 	}
 }
 
-func (nav *Nav) SetWaypoint(wp *Waypoint) {
+func (nav *Nav) SetWaypoint(wp Waypoint) {
+	nav.set = true
 	nav.next = wp
 }
 
-func (nav *Nav) AddWaypoint(wp *Waypoint) {
+func (nav *Nav) ClearWaypoints() {
+	nav.set = false
+	nav.waypoints.Clear()
+}
+
+func (nav *Nav) AddWaypoint(wp Waypoint) {
 	nav.waypoints.Push(wp)
 }
 
 func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
-	if nav.next == nil {
-		nav.next = nav.waypoints.Pop()
-		if nav.next == nil {
+	if !nav.set {
+		var ok bool
+		nav.next, ok = nav.waypoints.Pop()
+		if !ok {
 			return NoMoreWaypoints
 		}
 	}
 
-	glog.V(3).Infoln("Next", nav.next)
+	if glog.V(3) {
+		glog.Infoln("Next", nav.next)
+	}
 
 	delta := nav.next.Position.Sub(pos)
 	distance := delta.Len()
@@ -52,8 +63,10 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 	t := nav.next.Tolerance
 
 	if distance < t {
-		glog.V(2).Infoln("Hit waypoint", nav.next, distance, t)
-		nav.next = nil
+		if glog.V(2) {
+			glog.Infoln("Hit waypoint", nav.next, distance, t)
+		}
+		nav.set = false
 		return nil
 	}
 
@@ -65,7 +78,9 @@ func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 }
 
 func (nav *Nav) thrust(acc mgl64.Vec3) error {
-	glog.V(3).Infoln("Thrusting", acc)
+	if glog.V(3) {
+		glog.Infoln("Thrusting", acc)
+	}
 	scaled := acc.Mul(1.0 / float64(len(nav.thrusters)))
 	for _, thruster := range nav.thrusters {
 		err := thruster.Thrust(scaled)

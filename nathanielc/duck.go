@@ -22,14 +22,20 @@ func (self *DuckPilot) Tick(tick int64) {
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)
 		if err != nil {
-			glog.V(3).Infoln("Failed to power engines", err)
+			if glog.V(3) {
+				glog.Infoln("Failed to power engines", err)
+			}
 		}
 	}
 	scan, err := self.Sensors[0].Scan()
 	if err != nil {
-		glog.V(3).Infoln("Failed to scan", err)
+		if glog.V(3) {
+			glog.Infoln("Failed to scan", err)
+		}
 		return
 	}
 
-	glog.V(3).Infoln("Duck health", scan.Health)
+	if glog.V(3) {
+		glog.Infoln("Duck health", scan.Health)
+	}
 }

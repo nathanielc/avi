@@ -36,20 +36,28 @@ func (self *JillPilot) Tick(tick int64) {
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)
 		if err != nil {
-			glog.V(3).Infoln("Failed to power engines", err)
+			if glog.V(3) {
+				glog.Infoln("Failed to power engines", err)
+			}
 		}
 	}
 	scan, err := self.Sensors[0].Scan()
 	if err != nil {
-		glog.V(3).Infoln("Failed to scan", err)
+		if glog.V(3) {
+			glog.Infoln("Failed to scan", err)
+		}
 		return
 	}
 	defer scan.Done()
 	err = self.navComputer.Tick(scan.Position, scan.Velocity)
 	if err != nil {
-		glog.V(3).Infoln("Failed to navigate", err)
+		if glog.V(3) {
+			glog.Infoln("Failed to navigate", err)
+		}
 	}
-	glog.V(3).Infoln("jill", scan.Health, scan.Position, scan.Velocity.Len(), len(scan.Ships))
+	if glog.V(3) {
+		glog.Infoln("jill", scan.Health, scan.Position, scan.Velocity.Len(), len(scan.Ships))
+	}
 	if !targetExists(self.target, scan.Ships) {
 		distance := 0.0
 		for id, ship := range scan.Ships {
@@ -69,7 +77,7 @@ func (self *JillPilot) Tick(tick int64) {
 	targetPos := scan.Ships[self.target].Position
 	targetVel := scan.Ships[self.target].Velocity
 
-	wp := &nav.Waypoint{
+	wp := nav.Waypoint{
 		Position:  targetPos,
 		MaxSpeed:  100,
 		Tolerance: 150,
@@ -85,7 +93,9 @@ func (self *JillPilot) Tick(tick int64) {
 
 			err := weapon.Fire(dir)
 			if err != nil {
-				glog.V(3).Infoln("Failed to fire", err)
+				if glog.V(3) {
+					glog.Infoln("Failed to fire", err)
+				}
 			}
 			self.cooldownTicks = weapon.GetCoolDownTicks()
 		}

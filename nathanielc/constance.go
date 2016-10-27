@@ -27,14 +27,18 @@ func (self *ConstancePilot) Tick(tick int64) {
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)
 		if err != nil {
-			glog.V(3).Infoln("Failed to power engines", err)
+			if glog.V(3) {
+				glog.Infoln("Failed to power engines", err)
+			}
 		}
 	}
 
 	for _, thruster := range self.Thrusters {
 		err := thruster.Thrust(mgl64.Vec3{0, 0, 1e4})
 		if err != nil {
-			glog.V(3).Infoln("Failed to thrust", err)
+			if glog.V(3) {
+				glog.Infoln("Failed to thrust", err)
+			}
 		} else {
 			self.moving++
 		}

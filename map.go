@@ -16,7 +16,7 @@ type MapConf struct {
 	Asteroids      []asteroidConf
 	ControlPoints  []controlPointConf `yaml:"control_points"`
 	StartingPoints [][]float64        `yaml:"starting_points"`
-    Rules          RulesConf
+	Rules          RulesConf
 }
 
 func LoadMapFromFile(f io.Reader) (*MapConf, error) {

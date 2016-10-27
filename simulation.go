@@ -303,11 +303,13 @@ func (sim *Simulation) tickShips() {
 func (sim *Simulation) propagateObjects() {
 	sim.sectorSize = minSectorSize
 	for _, ship := range sim.ships {
-		//glog.V(4).Infoln("S: ",
-		//	ship.Position(),
-		//	ship.Velocity(),
-		//	ship.Radius(),
-		//)
+		if glog.V(4) {
+			glog.Infoln("S: ",
+				ship.Position(),
+				ship.Velocity(),
+				ship.Radius(),
+			)
+		}
 		sim.propagateObject(ship)
 		if r := int64(ship.Radius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
@@ -326,7 +328,9 @@ func (sim *Simulation) propagateObjects() {
 		}
 	}
 
-	//glog.V(4).Infoln("Sector size", sim.sectorSize)
+	if glog.V(4) {
+		glog.Infoln("Sector size", sim.sectorSize)
+	}
 }
 
 func (sim *Simulation) propagateObject(obj Object) {
@@ -357,7 +361,9 @@ func (sim *Simulation) collideObjects() {
 		}
 	}
 	// Projectiles call only collide once
-	//glog.V(4).Infoln("Colliding projectiles", len(sim.projs))
+	if glog.V(4) {
+		glog.Infoln("Colliding projectiles", len(sim.projs))
+	}
 projectiles:
 	for _, p := range sim.projs {
 		// Collide projectiles with ships
