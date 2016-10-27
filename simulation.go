@@ -39,11 +39,6 @@ type Simulation struct {
 	deleted   []ID
 	rate      int64
 
-	sectorsList map[int64]bool
-	othrSectors map[int64][]Object
-	projSectors map[int64][]Object
-	objListPool objectListPool
-
 	// Ships tick wait group
 	shipWG sync.WaitGroup
 }
@@ -70,9 +65,6 @@ func NewSimulation(
 		rate:           rate,
 		maxTicks:       maxTicks,
 		stream:         stream,
-		sectorsList:    make(map[int64]bool),
-		othrSectors:    make(map[int64][]Object),
-		projSectors:    make(map[int64][]Object),
 	}
 	// Add Control Points
 	for _, cp := range mp.ControlPoints {
@@ -476,21 +468,4 @@ func resolveCollision(obj1, obj2 Object, cor float64) {
 
 	obj1.setVelocity(v1.Add(impulse.Mul(im1)))
 	obj2.setVelocity(v2.Sub(impulse.Mul(im2)))
-}
-
-type objectListPool struct {
-	pool [][]Object
-}
-
-func (p objectListPool) get() []Object {
-	if l := len(p.pool); l > 0 {
-		o := p.pool[l-1]
-		p.pool = p.pool[:l-1]
-		return o[0:0]
-	}
-	return make([]Object, 0, 100)
-}
-
-func (p objectListPool) put(o []Object) {
-	p.pool = append(p.pool, o)
 }
