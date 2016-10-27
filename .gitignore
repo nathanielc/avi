@@ -33,3 +33,6 @@ _testmain.go
 arenas/*/game*
 .vagrant
 /avi
+
+# Pprof
+*.out

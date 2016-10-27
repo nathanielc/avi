@@ -55,26 +55,35 @@ func (self *DubberHeadPilot) Tick(tick int64) {
 	for _, engine := range self.Engines {
 		err := engine.PowerOn(1.0)
 		if err != nil {
-			glog.V(4).Infoln("Failed to power engines", err)
+			if glog.V(4) {
+				glog.Infoln("Failed to power engines", err)
+			}
 		}
 	}
 	scan, err := self.Sensors[0].Scan()
 	if err != nil {
-		glog.V(4).Infoln("Failed to scan", err)
+		if glog.V(4) {
+			glog.Infoln("Failed to scan", err)
+		}
 		return
 	}
+	defer scan.Done()
 	err = self.navComputer.Tick(scan.Position, scan.Velocity)
 	if err != nil {
-		glog.V(4).Infoln("Failed to navigate", err)
+		if glog.V(4) {
+			glog.Infoln("Failed to navigate", err)
+		}
 	}
-	glog.V(4).Infoln("DubberHead", scan.Health, scan.Position, scan.Velocity.Len())
+	if glog.V(4) {
+		glog.Infoln("DubberHead", scan.Health, scan.Position, scan.Velocity.Len())
+	}
 	self.navCtlP(tick, scan)
 
 	self.fire(tick, scan)
 
 }
 
-func (self *DubberHeadPilot) navCtlP(time int64, scan *avi.ScanResult) {
+func (self *DubberHeadPilot) navCtlP(time int64, scan avi.ScanResult) {
 
 	// Find Control Point
 	if !ctlpExists(self.ctlp, scan.ControlPoints) {
@@ -103,7 +112,7 @@ func (self *DubberHeadPilot) navCtlP(time int64, scan *avi.ScanResult) {
 	if tolerance < 10 {
 		tolerance = 30
 	}
-	wp := &nav.Waypoint{
+	wp := nav.Waypoint{
 		Position:  ctlp.Position.Add(self.ctlpBias.Mul(ctlp.Radius + scan.Radius + tolerance)),
 		MaxSpeed:  tolerance * 0.4,
 		Tolerance: tolerance,
@@ -111,7 +120,7 @@ func (self *DubberHeadPilot) navCtlP(time int64, scan *avi.ScanResult) {
 	self.navComputer.SetWaypoint(wp)
 }
 
-func (self *DubberHeadPilot) fire(tick int64, scan *avi.ScanResult) {
+func (self *DubberHeadPilot) fire(tick int64, scan avi.ScanResult) {
 
 	//Find target ship
 	if !shipExists(self.target, scan.Ships) {
@@ -138,7 +147,9 @@ func (self *DubberHeadPilot) fire(tick int64, scan *avi.ScanResult) {
 
 	if targetPos.Sub(scan.Position).Len() > 1e3 {
 		self.target = avi.NilID
-		glog.V(3).Infoln("Target is too far away choosing another target")
+		if glog.V(3) {
+			glog.Infoln("Target is too far away choosing another target")
+		}
 	}
 
 	if tick%self.cooldownTicks == 0 {
@@ -151,23 +162,31 @@ func (self *DubberHeadPilot) fire(tick int64, scan *avi.ScanResult) {
 				Sub(self.targetI.velocity).
 				Mul(1.0 / (avi.TimePerTick * float64(self.targetF.tick-self.targetI.tick)))
 
-			glog.V(4).Infoln("Acc: ", acc)
+			if glog.V(4) {
+				glog.Infoln("Acc: ", acc)
+			}
 
 			deltaPos := targetPos.Sub(scan.Position)
 			deltaVel := targetVel.Sub(scan.Velocity)
 			time := calcT(deltaPos, deltaVel, vel)
 			if time < 0 {
-				glog.V(3).Infoln("Target out of range", time)
+				if glog.V(3) {
+					glog.Infoln("Target out of range", time)
+				}
 				continue
 			}
 
 			dir := deltaVel.Add(deltaPos.Mul(1 / time)).Add(acc.Mul(time * 0.5))
 
-			glog.V(3).Infoln(dir, dir.Len())
+			if glog.V(3) {
+				glog.Infoln(dir, dir.Len())
+			}
 
 			err := weapon.Fire(dir)
 			if err != nil {
-				glog.V(3).Infoln("Failed to fire", err)
+				if glog.V(3) {
+					glog.Infoln("Failed to fire", err)
+				}
 			}
 			self.cooldownTicks = weapon.GetCoolDownTicks()
 		}
@@ -196,7 +215,9 @@ func calcT(deltaPos, deltaVel mgl64.Vec3, va float64) float64 {
 	t1 := (-b + math.Sqrt(det)) / (2 * a)
 	t2 := (-b - math.Sqrt(det)) / (2 * a)
 
-	glog.V(4).Infoln(deltaPos, deltaVel, va, vt, x, t1, t2)
+	if glog.V(4) {
+		glog.Infoln(deltaPos, deltaVel, va, vt, x, t1, t2)
+	}
 
 	if t1 < t2 && t1 > 0 || t2 < 0 {
 		return t1

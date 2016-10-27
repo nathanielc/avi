@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"io"
 	"log"
 	"os"
 	"runtime/pprof"
@@ -39,14 +38,13 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	var mem io.Writer
 	if *memProfile != "" {
 		f, err := os.Create(*memProfile)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(err, 0)
 		}
 		defer f.Close()
-		mem = f
+		defer pprof.Lookup("heap").WriteTo(f, 0)
 	}
 
 	if *replay != "" {
@@ -131,7 +129,6 @@ func main() {
 		drawer,
 		*maxTime,
 		int64(*simFPS),
-		mem,
 	)
 	if err != nil {
 		glog.Error(err)
