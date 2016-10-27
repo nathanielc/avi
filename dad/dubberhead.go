@@ -63,6 +63,7 @@ func (self *DubberHeadPilot) Tick(tick int64) {
 		glog.V(4).Infoln("Failed to scan", err)
 		return
 	}
+	defer scan.Done()
 	err = self.navComputer.Tick(scan.Position, scan.Velocity)
 	if err != nil {
 		glog.V(4).Infoln("Failed to navigate", err)
@@ -74,7 +75,7 @@ func (self *DubberHeadPilot) Tick(tick int64) {
 
 }
 
-func (self *DubberHeadPilot) navCtlP(time int64, scan *avi.ScanResult) {
+func (self *DubberHeadPilot) navCtlP(time int64, scan avi.ScanResult) {
 
 	// Find Control Point
 	if !ctlpExists(self.ctlp, scan.ControlPoints) {
@@ -111,7 +112,7 @@ func (self *DubberHeadPilot) navCtlP(time int64, scan *avi.ScanResult) {
 	self.navComputer.SetWaypoint(wp)
 }
 
-func (self *DubberHeadPilot) fire(tick int64, scan *avi.ScanResult) {
+func (self *DubberHeadPilot) fire(tick int64, scan avi.ScanResult) {
 
 	//Find target ship
 	if !shipExists(self.target, scan.Ships) {

@@ -44,6 +44,7 @@ func (self *JillPilot) Tick(tick int64) {
 		glog.V(3).Infoln("Failed to scan", err)
 		return
 	}
+	defer scan.Done()
 	err = self.navComputer.Tick(scan.Position, scan.Velocity)
 	if err != nil {
 		glog.V(3).Infoln("Failed to navigate", err)

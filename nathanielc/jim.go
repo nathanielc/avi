@@ -54,6 +54,7 @@ func (self *JimPilot) Tick(tick int64) {
 		glog.V(4).Infoln("Failed to scan", err)
 		return
 	}
+	defer scan.Done()
 	err = self.navComputer.Tick(scan.Position, scan.Velocity)
 	if err != nil {
 		glog.V(4).Infoln("Failed to navigate", err)
@@ -64,7 +65,7 @@ func (self *JimPilot) Tick(tick int64) {
 	self.fire(tick, scan)
 }
 
-func (self *JimPilot) navCtlP(scan *avi.ScanResult) {
+func (self *JimPilot) navCtlP(scan avi.ScanResult) {
 
 	// Find Control Point
 	if !ctlpExists(self.ctlpID, scan.ControlPoints) {
@@ -98,7 +99,7 @@ func (self *JimPilot) navCtlP(scan *avi.ScanResult) {
 	self.navComputer.SetWaypoint(wp)
 }
 
-func (self *JimPilot) fire(tick int64, scan *avi.ScanResult) {
+func (self *JimPilot) fire(tick int64, scan avi.ScanResult) {
 
 	//Find target ship
 	if !shipExists(self.target, scan.Ships) {

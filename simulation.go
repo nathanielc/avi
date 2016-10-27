@@ -3,9 +3,8 @@ package avi
 import (
 	"errors"
 	"fmt"
-	"io"
 	"math"
-	"runtime/pprof"
+	"sync"
 	"time"
 
 	"github.com/go-gl/mathgl/mgl64"
@@ -39,12 +38,14 @@ type Simulation struct {
 	stream    Drawer
 	deleted   []ID
 	rate      int64
-	mem       io.Writer
 
 	sectorsList map[int64]bool
 	othrSectors map[int64][]Object
 	projSectors map[int64][]Object
 	objListPool objectListPool
+
+	// Ships tick wait group
+	shipWG sync.WaitGroup
 }
 
 func NewSimulation(
@@ -54,7 +55,6 @@ func NewSimulation(
 	stream Drawer,
 	maxTime time.Duration,
 	fps int64,
-	mem io.Writer,
 ) (*Simulation, error) {
 	rate := int64(1.0 / (TimePerTick * float64(fps)))
 	if rate < 1 {
@@ -70,7 +70,6 @@ func NewSimulation(
 		rate:           rate,
 		maxTicks:       maxTicks,
 		stream:         stream,
-		mem:            mem,
 		sectorsList:    make(map[int64]bool),
 		othrSectors:    make(map[int64][]Object),
 		projSectors:    make(map[int64][]Object),
@@ -226,9 +225,6 @@ func (sim *Simulation) loop() (string, float64) {
 	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < sim.maxScore) && len(sim.ships) > 0 {
 		score, cont = sim.doTick()
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
-			if sim.mem != nil {
-				pprof.WriteHeapProfile(sim.mem)
-			}
 			l := len(sim.ships) + len(sim.projs) + len(sim.astds) + len(sim.ctlps)
 
 			if cap(drawables) < l {
@@ -292,29 +288,26 @@ func (sim *Simulation) scoreFleets() float64 {
 }
 
 func (sim *Simulation) tickShips() {
-	n := len(sim.ships)
-	complete := make(chan int, n)
+	sim.shipWG.Add(len(sim.ships))
 	for _, ship := range sim.ships {
 		ship := ship
 		go func() {
 			ship.Energize()
 			ship.Tick()
-			complete <- 1
+			sim.shipWG.Done()
 		}()
 	}
-	for i := 0; i < n; i++ {
-		<-complete
-	}
+	sim.shipWG.Wait()
 }
 
 func (sim *Simulation) propagateObjects() {
 	sim.sectorSize = minSectorSize
 	for _, ship := range sim.ships {
-		glog.V(4).Infoln("S: ",
-			ship.Position(),
-			ship.Velocity(),
-			ship.Radius(),
-		)
+		//glog.V(4).Infoln("S: ",
+		//	ship.Position(),
+		//	ship.Velocity(),
+		//	ship.Radius(),
+		//)
 		sim.propagateObject(ship)
 		if r := int64(ship.Radius() * 2); r > sim.sectorSize {
 			sim.sectorSize = r
@@ -333,7 +326,7 @@ func (sim *Simulation) propagateObjects() {
 		}
 	}
 
-	glog.V(4).Infoln("Sector size", sim.sectorSize)
+	//glog.V(4).Infoln("Sector size", sim.sectorSize)
 }
 
 func (sim *Simulation) propagateObject(obj Object) {
@@ -364,7 +357,7 @@ func (sim *Simulation) collideObjects() {
 		}
 	}
 	// Projectiles call only collide once
-	glog.V(4).Infoln("Colliding projectiles", len(sim.projs))
+	//glog.V(4).Infoln("Colliding projectiles", len(sim.projs))
 projectiles:
 	for _, p := range sim.projs {
 		// Collide projectiles with ships

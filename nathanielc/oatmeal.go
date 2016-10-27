@@ -71,6 +71,7 @@ func (self *OatmealPilot) Tick(tick int64) {
 		glog.V(4).Infoln("Failed to scan", err)
 		return
 	}
+	defer scan.Done()
 
 	err = self.navComputer.Tick(scan.Position, scan.Velocity)
 	if err == nav.NoMoreWaypoints {
@@ -87,7 +88,7 @@ func (self *OatmealPilot) Tick(tick int64) {
 	}
 }
 
-func (self *OatmealPilot) orbit(scan *avi.ScanResult) {
+func (self *OatmealPilot) orbit(scan avi.ScanResult) {
 
 	ctlp := scan.ControlPoints[self.ctlp]
 	vel := scan.Velocity.Len()

@@ -3,6 +3,7 @@ package avi
 import (
 	"errors"
 	"math"
+	"sync"
 
 	"github.com/go-gl/mathgl/mgl64"
 )
@@ -15,7 +16,10 @@ type Sensor struct {
 	partT
 	energy   float64
 	power    float64
-	lastScan *ScanResult
+	lastScan ScanResult
+
+	ships sync.Pool
+	ctlps sync.Pool
 }
 
 // Conf format for loading engines from a file
@@ -37,6 +41,8 @@ func NewSensor001(pos mgl64.Vec3) *Sensor {
 		},
 		energy: 1,
 		power:  1,
+		ships:  sync.Pool{New: func() interface{} { return make(map[ID]ShipSR) }},
+		ctlps:  sync.Pool{New: func() interface{} { return make(map[ID]CtlPSR) }},
 	}
 }
 
@@ -51,6 +57,8 @@ func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 		},
 		energy: conf.Energy,
 		power:  conf.Power,
+		ships:  sync.Pool{New: func() interface{} { return make(map[ID]ShipSR) }},
+		ctlps:  sync.Pool{New: func() interface{} { return make(map[ID]CtlPSR) }},
 	}
 }
 
@@ -62,6 +70,24 @@ type ScanResult struct {
 	Health        float64
 	Ships         map[ID]ShipSR
 	ControlPoints map[ID]CtlPSR
+
+	ships *sync.Pool
+	ctlps *sync.Pool
+}
+
+func (sr ScanResult) Done() {
+	if sr.Ships != nil {
+		for k := range sr.Ships {
+			delete(sr.Ships, k)
+		}
+		sr.ships.Put(sr.Ships)
+	}
+	if sr.ControlPoints != nil {
+		for k := range sr.ControlPoints {
+			delete(sr.ControlPoints, k)
+		}
+		sr.ctlps.Put(sr.ControlPoints)
+	}
 }
 
 type ShipSR struct {
@@ -79,18 +105,18 @@ type CtlPSR struct {
 	Influence float64
 }
 
-func (self *Sensor) Scan() (*ScanResult, error) {
+func (self *Sensor) Scan() (ScanResult, error) {
 	if self.used {
-		return nil, errors.New("Already used sensor this tick")
+		return ScanResult{}, errors.New("Already used sensor this tick")
 	}
 	self.used = true
 
 	err := self.ship.ConsumeEnergy(self.energy)
 	if err != nil {
-		return nil, err
+		return ScanResult{}, err
 	}
 	scan := self.lastScan
-	self.lastScan = &ScanResult{
+	self.lastScan = ScanResult{
 		Position:      self.ship.position,
 		Velocity:      self.ship.velocity,
 		Mass:          self.ship.mass,
@@ -98,15 +124,17 @@ func (self *Sensor) Scan() (*ScanResult, error) {
 		Health:        self.ship.health,
 		Ships:         self.searchShips(),
 		ControlPoints: self.searchCPs(),
+		ships:         &self.ships,
+		ctlps:         &self.ctlps,
 	}
-	if scan == nil {
-		return nil, NoScanAvalaible
+	if scan.Ships == nil {
+		return ScanResult{}, NoScanAvalaible
 	}
 	return scan, nil
 }
 
 func (self *Sensor) searchShips() map[ID]ShipSR {
-	ships := make(map[ID]ShipSR, len(self.ship.sim.ships))
+	ships := self.ships.Get().(map[ID]ShipSR)
 	for _, ship := range self.ship.sim.ships {
 		if ship == self.ship {
 			continue
@@ -130,7 +158,7 @@ func (self *Sensor) searchShips() map[ID]ShipSR {
 }
 
 func (self *Sensor) searchCPs() map[ID]CtlPSR {
-	ctlps := make(map[ID]CtlPSR, len(self.ship.sim.ctlps))
+	ctlps := self.ctlps.Get().(map[ID]CtlPSR)
 	for _, ctlp := range self.ship.sim.ctlps {
 		distance := ctlp.position.Sub(self.ship.position).Len()
 

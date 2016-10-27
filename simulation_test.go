@@ -187,7 +187,7 @@ func TestElasticCollisionShouldNotDoDamage(t *testing.T) {
 	assert.InDelta(health, obj2.health, 1e-5)
 }
 
-func BenchmarkLoop(b *testing.B) {
+func BenchmarkTick(b *testing.B) {
 	ship0 := newOneDirPilot(mgl64.Vec3{-1, -1, -1})
 	ship1 := newOneDirPilot(mgl64.Vec3{1, 1, 1})
 	radius := 10000.0
@@ -222,6 +222,7 @@ func BenchmarkLoop(b *testing.B) {
 		sim.addProjectile(pos, vel, 1, 0.1)
 	}
 
+	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		sim.doTick()

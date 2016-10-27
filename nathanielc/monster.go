@@ -47,6 +47,7 @@ func (self *MonsterPilot) Tick(tick int64) {
 		glog.V(4).Infoln("Failed to scan", err)
 		return
 	}
+	defer scan.Done()
 	err = self.navComputer.Tick(scan.Position, scan.Velocity)
 	if err != nil {
 		glog.V(4).Infoln("Failed to navigate", err)
@@ -58,7 +59,7 @@ func (self *MonsterPilot) Tick(tick int64) {
 
 }
 
-func (self *MonsterPilot) navCtlP(scan *avi.ScanResult) {
+func (self *MonsterPilot) navCtlP(scan avi.ScanResult) {
 
 	// Find Control Point
 	if !ctlpExists(self.ctlp, scan.ControlPoints) {
@@ -92,7 +93,7 @@ func (self *MonsterPilot) navCtlP(scan *avi.ScanResult) {
 	self.navComputer.SetWaypoint(wp)
 }
 
-func (self *MonsterPilot) fire(tick int64, scan *avi.ScanResult) {
+func (self *MonsterPilot) fire(tick int64, scan avi.ScanResult) {
 
 	//Find target ship
 	if !shipExists(self.target, scan.Ships) {
