@@ -5,7 +5,7 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/go-gl/mathgl/mgl64"
+	"azul3d.org/engine/lmath"
 )
 
 var ErrOutOfEnergy = errors.New("out of energy")
@@ -16,11 +16,11 @@ var weaponType = reflect.TypeOf(&Weapon{})
 var sensorType = reflect.TypeOf(&Sensor{})
 
 type ShipConf struct {
-	Pilot        string
-	Texture      string
-	HullStrength float64 `yaml:"hull_strength"`
-	Position     []float64
-	Parts        []ShipPartConf
+	Pilot        string         `yaml:"pilot" json:"pilot"`
+	Texture      string         `yaml:"texture" json:"texture"`
+	HullStrength float64        `yaml:"hull_strength" json:"hull_strength"`
+	Position     []float64      `yaml:"position" json:"position"`
+	Parts        []ShipPartConf `yaml:"parts" json:"parts"`
 }
 
 //Internal representaion of the ship
@@ -39,7 +39,7 @@ type shipT struct {
 	currentEnergy float64
 }
 
-func newShip(id ID, sim *Simulation, fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
+func newShip(id ID, sim *Simulation, fleet string, pos lmath.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
 
 	newShip := &shipT{
 		sim:       sim,
@@ -105,9 +105,9 @@ func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 			}
 			p1 := ship.parts[i]
 			p2 := ship.parts[j]
-			distance := p1.Position().Sub(p2.Position()).Len()
+			distance2 := p1.Position().Sub(p2.Position()).LengthSq()
 			radii := p1.Radius() + p2.Radius()
-			if radii > distance {
+			if radii*radii > distance2 {
 				err := errors.New("Error: ship parts overlap")
 				return err
 			}
@@ -121,7 +121,7 @@ func (ship *shipT) determineSize() {
 	maxRadius := 0.0
 
 	for _, part := range ship.parts {
-		radius := part.Position().Len() + part.Radius()
+		radius := part.Position().Length() + part.Radius()
 		if radius > maxRadius {
 			maxRadius = radius
 		}
@@ -149,13 +149,14 @@ func (ship *shipT) ConsumeEnergy(amount float64) error {
 }
 
 // Apply a given amount of thrust in a certain direction
-func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
-	accerlation := dir.Normalize().Mul(force / ship.mass)
+func (ship *shipT) ApplyThrust(dir lmath.Vec3, force float64) {
+	n, _ := dir.Normalized()
+	accerlation := n.MulScalar(force / ship.mass)
 	ship.ApplyAcc(accerlation)
 }
 
-func (ship *shipT) ApplyAcc(dir mgl64.Vec3) {
-	ship.setVelocity(ship.Velocity().Add(dir.Mul(TimePerTick)))
+func (ship *shipT) ApplyAcc(dir lmath.Vec3) {
+	ship.setVelocity(ship.Velocity().Add(dir.MulScalar(SecondsPerTick)))
 }
 
 func (ship *shipT) Tick() {

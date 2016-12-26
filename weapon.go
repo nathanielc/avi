@@ -3,8 +3,9 @@ package avi
 import (
 	"errors"
 	"fmt"
-	"github.com/go-gl/mathgl/mgl64"
 	"math"
+
+	"azul3d.org/engine/lmath"
 )
 
 var OutOfAmmoError = errors.New("Out of ammunition")
@@ -22,17 +23,17 @@ type Weapon struct {
 
 // Conf format for loading weapons from a file
 type WeaponConf struct {
-	Mass         float64
-	Radius       float64
-	Energy       float64
-	AmmoVelocity float64 `yaml:"ammo_velocity"`
-	AmmoMass     float64 `yaml:"ammo_mass"`
-	AmmoCapacity int64   `yaml:"ammo_capacity"`
-	AmmoRadius   float64 `yaml:"ammo_radius"`
-	Cooldown     float64
+	Mass         float64 `yaml:"mass" json:"mass"`
+	Radius       float64 `yaml:"radius" json:"radius"`
+	Energy       float64 `yaml:"energy" json:"energy"`
+	AmmoVelocity float64 `yaml:"ammo_velocity" json:"ammo_velocity"`
+	AmmoMass     float64 `yaml:"ammo_mass" json:"ammo_mass"`
+	AmmoCapacity int64   `yaml:"ammo_capacity" json:"ammo_capacity"`
+	AmmoRadius   float64 `yaml:"ammo_radius" json:"ammo_radius"`
+	Cooldown     float64 `yaml:"cooldown" json:"cooldown"`
 }
 
-func NewWeapon001(pos mgl64.Vec3) *Weapon {
+func NewWeapon001(pos lmath.Vec3) *Weapon {
 	return &Weapon{
 		partT: partT{
 			objectT: objectT{
@@ -46,11 +47,11 @@ func NewWeapon001(pos mgl64.Vec3) *Weapon {
 		ammoMass:      1,
 		ammoRadius:    0.05,
 		ammoCapacity:  1e5,
-		cooldownTicks: int64(5.0 / TimePerTick),
+		cooldownTicks: int64(5.0 / SecondsPerTick),
 	}
 }
 
-func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
+func NewWeaponFromConf(pos lmath.Vec3, conf WeaponConf) *Weapon {
 	return &Weapon{
 		partT: partT{
 			objectT: objectT{
@@ -64,7 +65,7 @@ func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 		ammoMass:      conf.AmmoMass,
 		ammoRadius:    conf.AmmoRadius,
 		ammoCapacity:  conf.AmmoCapacity,
-		cooldownTicks: int64(conf.Cooldown / TimePerTick),
+		cooldownTicks: int64(conf.Cooldown / SecondsPerTick),
 	}
 }
 
@@ -72,8 +73,8 @@ func (self *Weapon) Mass() float64 {
 	return self.mass + float64(self.ammoCapacity)*self.ammoMass
 }
 
-func (self *Weapon) Fire(dir mgl64.Vec3) error {
-	if l := dir.Len(); math.IsNaN(l) || l == 0 {
+func (self *Weapon) Fire(dir lmath.Vec3) error {
+	if l := dir.LengthSq(); math.IsNaN(l) || l == 0 {
 		err := errors.New(fmt.Sprintf("Invalid direction %s", dir))
 		return err
 	}
@@ -95,11 +96,11 @@ func (self *Weapon) Fire(dir mgl64.Vec3) error {
 		return err
 	}
 	force := self.ammoMass * self.ammoVelocity
-	self.ship.ApplyThrust(dir.Mul(-1.0), force)
+	self.ship.ApplyThrust(dir.MulScalar(-1.0), force)
 
-	norm := dir.Normalize()
-	pos := norm.Mul(self.ship.radius + 1).Add(self.ship.position)
-	vel := norm.Mul(self.ammoVelocity).Add(self.ship.velocity)
+	norm, _ := dir.Normalized()
+	pos := norm.MulScalar(self.ship.radius + 1).Add(self.ship.position)
+	vel := norm.MulScalar(self.ammoVelocity).Add(self.ship.velocity)
 
 	self.ship.sim.addProjectile(pos, vel, self.ammoMass, self.ammoRadius)
 

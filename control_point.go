@@ -8,15 +8,15 @@ type controlPoint struct {
 	influence float64
 }
 
-type controlPointConf struct {
-	Mass      float64
-	Radius    float64
-	Position  []float64
-	Points    float64
-	Influence float64
+type ControlPointConf struct {
+	Mass      float64   `yaml:"mass" json:"mass"`
+	Radius    float64   `yaml:"radius" json:"radius"`
+	Position  []float64 `yaml:"position" json:"position"`
+	Points    float64   `yaml:"points" json:"points"`
+	Influence float64   `yaml:"influence" json:"influence"`
 }
 
-func NewControlPoint(id ID, conf controlPointConf) (*controlPoint, error) {
+func NewControlPoint(id ID, conf ControlPointConf) (*controlPoint, error) {
 	pos, err := sliceToVec(conf.Position)
 	if err != nil {
 		return nil, err

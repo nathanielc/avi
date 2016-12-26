@@ -1,10 +1,10 @@
 package avi
 
-import "github.com/go-gl/mathgl/mgl64"
+import "azul3d.org/engine/lmath"
 
 type Drawable interface {
 	ID() ID
-	Position() mgl64.Vec3
+	Position() lmath.Vec3
 	Radius() float64
 	Texture() string
 }
@@ -12,7 +12,8 @@ type Drawable interface {
 type Drawer interface {
 	Draw(
 		scores map[string]float64,
-		drawables []Drawable,
+		new,
+		existing []Drawable,
 		deleted []ID,
 	)
 }

@@ -1,0 +1,47 @@
+# Blender MTL File: 'space_clock.blend'
+# Material Count: 4
+
+newmtl exhaust_burn
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.596052 0.336864 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.745065 0.421080 1.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl hull
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.121585 0.127242 0.113113
+Ks 0.100000 0.100000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump /home/nvcook42/.config/blender/2.78/scripts/addons/add_mesh_SpaceshipGenerator/textures/hull_normal.png
+
+newmtl hull_dark
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.036476 0.038172 0.033934
+Ks 0.100000 0.100000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump /home/nvcook42/.config/blender/2.78/scripts/addons/add_mesh_SpaceshipGenerator/textures/hull_normal.png
+
+newmtl hull_lights
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.121585 0.127242 0.113113
+Ks 0.100000 0.100000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump /home/nvcook42/.config/blender/2.78/scripts/addons/add_mesh_SpaceshipGenerator/textures/hull_normal.png
+map_Kd /home/nvcook42/.config/blender/2.78/scripts/addons/add_mesh_SpaceshipGenerator/textures/hull_lights_diffuse.png
+map_Ke /home/nvcook42/.config/blender/2.78/scripts/addons/add_mesh_SpaceshipGenerator/textures/hull_lights_emit.png

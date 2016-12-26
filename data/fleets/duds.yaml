@@ -1,0 +1,16 @@
+---
+name: duds
+ships:
+  - pilot: dud
+    position: [0, 0, 0]
+    parts:
+      - name: nuclear
+        type: engine
+        position: [0,0,0]
+      - name: rocket
+        type: thruster
+        position: [15,0,0]
+      - name: antenna
+        type: sensor
+        position: [0,0,-11]
+    hull_strength: 150

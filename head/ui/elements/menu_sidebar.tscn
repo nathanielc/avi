@@ -1,0 +1,79 @@
+[gd_scene load_steps=5 format=1]
+
+[ext_resource path="res://ui/elements/menu_sidebar.gd" type="Script" id=1]
+[ext_resource path="res://ui/images/sidebar.png" type="Texture" id=2]
+[ext_resource path="res://ui/elements/menu_btn.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/images/avi.png" type="Texture" id=4]
+
+[node name="Control" type="Control"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 200.0
+margin/bottom = 1080.0
+script/script = ExtResource( 1 )
+
+[node name="background" type="TextureFrame" parent="."]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 200.0
+margin/bottom = 1080.0
+texture = ExtResource( 2 )
+expand = true
+stretch_mode = 2
+
+[node name="new_battle" parent="." instance=ExtResource( 3 )]
+
+hint/tooltip = "Start a new battle"
+margin/top = 160.0
+margin/bottom = 202.0
+
+[node name="Label" parent="new_battle"]
+
+text = "New Battle"
+
+[node name="watch_replay" parent="." instance=ExtResource( 3 )]
+
+hint/tooltip = "Join an existing server."
+margin/top = 210.0
+margin/bottom = 252.0
+
+[node name="Label" parent="watch_replay"]
+
+text = "Watch Replay"
+
+[node name="quit" parent="." instance=ExtResource( 3 )]
+
+margin/top = 1000.0
+margin/bottom = 1042.0
+
+[node name="Label" parent="quit"]
+
+text = "Quit"
+
+[node name="logo" type="TextureFrame" parent="."]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 15.0
+margin/top = 15.0
+margin/right = 185.0
+margin/bottom = 138.0
+texture = ExtResource( 4 )
+stretch_mode = 0
+
+
+[editable path="new_battle"]
+[editable path="watch_replay"]
+[editable path="quit"]

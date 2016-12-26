@@ -1,7 +1,7 @@
 package nathanielc
 
 import (
-	"github.com/go-gl/mathgl/mgl64"
+	"azul3d.org/engine/lmath"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
 	"github.com/nathanielc/avi/nav"
@@ -13,7 +13,7 @@ func init() {
 
 type MonsterPilot struct {
 	avi.GenericPilot
-	dir           mgl64.Vec3
+	dir           lmath.Vec3
 	fired         bool
 	navComputer   *nav.Nav
 	cooldownTicks int64
@@ -25,7 +25,7 @@ type MonsterPilot struct {
 
 func NewMonster() avi.Pilot {
 	return &MonsterPilot{
-		dir:           mgl64.Vec3{1, 1, 1},
+		dir:           lmath.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        avi.NilID,
 		ctlp:          avi.NilID,
@@ -59,7 +59,7 @@ func (self *MonsterPilot) Tick(tick int64) {
 		}
 	}
 	if glog.V(4) {
-		glog.Infoln("Monster", scan.Health, scan.Position, scan.Velocity.Len())
+		glog.Infoln("Monster", scan.Health, scan.Position, scan.Velocity.Length())
 	}
 	self.navCtlP(scan)
 
@@ -87,14 +87,14 @@ func (self *MonsterPilot) navCtlP(scan avi.ScanResult) {
 
 	ctlp := scan.ControlPoints[self.ctlp]
 
-	distance := ctlp.Position.Sub(scan.Position).Len()
+	distance := ctlp.Position.Sub(scan.Position).Length()
 	tolerance := (distance - ctlp.Influence) / 2.0
 	if tolerance < 10 {
 		tolerance = 30
 	}
-	bias := mgl64.Vec3{0, 0, 1}
+	bias := lmath.Vec3{0, 0, 1}
 	wp := nav.Waypoint{
-		Position:  ctlp.Position.Add(bias.Mul(ctlp.Radius + scan.Radius + tolerance)),
+		Position:  ctlp.Position.Add(bias.MulScalar(ctlp.Radius + scan.Radius + tolerance)),
 		MaxSpeed:  tolerance * 0.4,
 		Tolerance: tolerance,
 	}
@@ -110,7 +110,7 @@ func (self *MonsterPilot) fire(tick int64, scan avi.ScanResult) {
 			if ship.Fleet == self.Fleet {
 				continue
 			}
-			d := ship.Position.Sub(scan.Position).Len()
+			d := ship.Position.Sub(scan.Position).Length()
 			if d < distance || distance == 0 {
 				distance = d
 				self.target = id
@@ -126,7 +126,7 @@ func (self *MonsterPilot) fire(tick int64, scan avi.ScanResult) {
 	targetPos := target.Position
 	targetVel := target.Velocity
 
-	if targetPos.Sub(scan.Position).Len() > 1e3 {
+	if targetPos.Sub(scan.Position).LengthSq() > 1e6 {
 		self.target = avi.NilID
 		if glog.V(3) {
 			glog.Infoln("Target is too far away choosing another target")
@@ -141,7 +141,7 @@ func (self *MonsterPilot) fire(tick int64, scan avi.ScanResult) {
 
 			acc := self.targetF.velocity.
 				Sub(self.targetI.velocity).
-				Mul(1.0 / (avi.TimePerTick * float64(self.targetF.tick-self.targetI.tick)))
+				MulScalar(1.0 / (avi.SecondsPerTick * float64(self.targetF.tick-self.targetI.tick)))
 
 			if glog.V(4) {
 				glog.Infoln("Acc: ", acc)
@@ -157,10 +157,10 @@ func (self *MonsterPilot) fire(tick int64, scan avi.ScanResult) {
 				continue
 			}
 
-			dir := deltaVel.Add(deltaPos.Mul(1 / time)).Add(acc.Mul(time * 0.5))
+			dir := deltaVel.Add(deltaPos.MulScalar(1 / time)).Add(acc.MulScalar(time * 0.5))
 
 			if glog.V(3) {
-				glog.Infoln(dir, dir.Len())
+				glog.Infoln(dir, dir.Length())
 			}
 
 			err := weapon.Fire(dir)

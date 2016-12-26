@@ -2,7 +2,8 @@ package avi
 
 import (
 	"errors"
-	"github.com/go-gl/mathgl/mgl64"
+
+	"azul3d.org/engine/lmath"
 )
 
 type Engine struct {
@@ -13,12 +14,12 @@ type Engine struct {
 
 // Conf format for loading engines from a file
 type EngineConf struct {
-	Mass   float64
-	Radius float64
-	Energy float64
+	Mass   float64 `yaml:"mass" json:"mass"`
+	Radius float64 `yaml:"radius" json:"radius"`
+	Energy float64 `yaml:"energy" json:"energy"`
 }
 
-func NewEngine001(pos mgl64.Vec3) *Engine {
+func NewEngine001(pos lmath.Vec3) *Engine {
 	return &Engine{
 		partT: partT{
 			objectT: objectT{
@@ -31,7 +32,7 @@ func NewEngine001(pos mgl64.Vec3) *Engine {
 	}
 }
 
-func NewEngineFromConf(pos mgl64.Vec3, conf EngineConf) *Engine {
+func NewEngineFromConf(pos lmath.Vec3, conf EngineConf) *Engine {
 	return &Engine{
 		partT: partT{
 			objectT: objectT{

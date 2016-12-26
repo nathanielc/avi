@@ -3,9 +3,6 @@ package avi
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v2"
-	"io"
-	"io/ioutil"
 )
 
 func PartNotAvailable(name string) error {
@@ -19,9 +16,9 @@ type Part interface {
 }
 
 type ShipPartConf struct {
-	Name     string
-	Position []float64
-	Type     string
+	Name     string    `yaml:"name" json:"name"`
+	Position []float64 `yaml:"position" json:"position"`
+	Type     string    `yaml:"type" json:"type"`
 }
 
 type partT struct {
@@ -38,26 +35,9 @@ func (part *partT) reset() {
 	part.used = false
 }
 
-type PartsConf struct {
-	Engines   map[string]EngineConf
-	Thrusters map[string]ThrusterConf
-	Weapons   map[string]WeaponConf
-	Sensors   map[string]SensorConf
-}
-
-func LoadPartsFromFile(f io.Reader) (*PartsConf, error) {
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-	return LoadPartsFromData(data)
-}
-
-func LoadPartsFromData(in []byte) (*PartsConf, error) {
-	conf := PartsConf{}
-	err := yaml.Unmarshal(in, &conf)
-	if err != nil {
-		return nil, err
-	}
-	return &conf, nil
+type PartSetConf struct {
+	Engines   map[string]EngineConf   `yaml:"engines" json:"engines"`
+	Thrusters map[string]ThrusterConf `yaml:"thrusters" json:"thrusters"`
+	Weapons   map[string]WeaponConf   `yaml:"weapons" json:"weapons"`
+	Sensors   map[string]SensorConf   `yaml:"sensors" json:"sensors"`
 }

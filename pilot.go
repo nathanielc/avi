@@ -2,7 +2,7 @@ package avi
 
 type Pilot interface {
 	JoinFleet(fleet string)
-	LinkParts([]ShipPartConf, *PartsConf) ([]Part, error)
+	LinkParts([]ShipPartConf, PartSetConf) ([]Part, error)
 	Tick(int64)
 }
 
@@ -21,4 +21,19 @@ func getPilot(pilot string) Pilot {
 		return pf()
 	}
 	return nil
+}
+
+func init() {
+	RegisterPilot("dud", NewDud)
+}
+
+type DudPilot struct {
+	GenericPilot
+}
+
+func NewDud() Pilot {
+	return &DudPilot{}
+}
+
+func (*DudPilot) Tick(tick int64) {
 }
