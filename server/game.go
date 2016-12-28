@@ -13,10 +13,11 @@ import (
 const scale = 0.01
 
 type game struct {
-	id      string
-	frames  chan Frame
-	clients chan chan<- Frame
-	closing chan struct{}
+	id          string
+	frames      chan Frame
+	clients     chan chan<- Frame
+	deadClients chan chan<- Frame
+	closing     chan struct{}
 
 	sim    *avi.Simulation
 	replay io.WriteCloser
@@ -28,10 +29,11 @@ type game struct {
 
 func newGame(id string) *game {
 	return &game{
-		id:      id,
-		frames:  make(chan Frame, 1),
-		clients: make(chan chan<- Frame, 10),
-		closing: make(chan struct{}),
+		id:          id,
+		frames:      make(chan Frame, 1),
+		clients:     make(chan chan<- Frame, 10),
+		deadClients: make(chan chan<- Frame, 10),
+		closing:     make(chan struct{}),
 	}
 }
 
@@ -78,6 +80,14 @@ func (g *game) runDraw() {
 				close(c)
 			}
 			return
+		case client := <-g.deadClients:
+			cs := clients[0:0]
+			for _, c := range clients {
+				if c != client {
+					cs = append(cs, c)
+				}
+			}
+			clients = cs
 		case client := <-g.clients:
 			clients = append(clients, client)
 			// Block reading frames till we have the first client
@@ -92,8 +102,9 @@ func (g *game) runDraw() {
 	}
 }
 
-func (g *game) Draw(scores map[string]float64, new, existing []avi.Drawable, deleted []avi.ID) {
+func (g *game) Draw(t float64, scores map[string]float64, new, existing []avi.Drawable, deleted []avi.ID) {
 	var frame Frame
+	frame.Time = float32(t)
 
 	frame.Scores = make(map[string]float32, len(scores))
 	for fleet, score := range scores {
@@ -153,10 +164,12 @@ func (g *game) Stream(w io.Writer) {
 		bytes := buf.Bytes()
 		if err := gdvariant.WriteUint32(w, uint32(len(bytes))); err != nil {
 			glog.Errorln(err)
+			g.deadClients <- frames
 			return
 		}
 		if _, err := w.Write(bytes); err != nil {
 			glog.Errorln(err)
+			g.deadClients <- frames
 			return
 		}
 		buf.Reset()

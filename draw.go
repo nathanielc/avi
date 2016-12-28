@@ -11,6 +11,7 @@ type Drawable interface {
 
 type Drawer interface {
 	Draw(
+		t float64,
 		scores map[string]float64,
 		new,
 		existing []Drawable,

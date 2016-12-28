@@ -3,7 +3,6 @@ extends Control
 func _ready():
 	get_node("watch").connect("pressed", self, "_on_watch_pressed")
 	var replays = global.client.get_replays()
-	print("replays", replays)
 	if replays.has('replays') and replays['replays'] != null:
 		for r in replays['replays']:
 			get_node("replays").add_item(r['date'].substr(0,16) + " " + r['game_id'])

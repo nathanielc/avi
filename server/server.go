@@ -3,6 +3,8 @@ package server
 import (
 	"net"
 	"net/http"
+
+	"github.com/golang/glog"
 )
 
 type ServerConf struct {
@@ -44,6 +46,7 @@ func (s *Server) Serve() error {
 	if err := s.h.Open(); err != nil {
 		return err
 	}
+	glog.Infoln("Starting server")
 	return srv.Serve(s.l)
 }
 
