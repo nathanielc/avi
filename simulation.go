@@ -446,8 +446,11 @@ projectiles:
 				continue projectiles
 			}
 		}
-		// Projectile didn't collide so keep it around
-		projs = append(projs, p)
+		// Projectile didn't collide so keep it around, unless
+		// it left the play area.
+		if p.Position().Length() < sim.radius {
+			projs = append(projs, p)
+		}
 	}
 	sim.projs = projs
 }

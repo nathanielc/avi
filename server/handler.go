@@ -42,9 +42,9 @@ func (h *Handler) Open() error {
 	h.r.HandleFunc("/avi/maps", h.getMaps).Methods("GET")
 	h.r.HandleFunc("/avi/part_sets", h.getParts).Methods("GET")
 	h.r.HandleFunc("/avi/fleets", h.getFleets).Methods("GET")
-	h.r.HandleFunc("/avi/replays", h.getReplays).Methods("GET")
-	h.r.HandleFunc("/avi/games/{id}", h.streamGame).Methods("GET")
 	h.r.HandleFunc("/avi/games", h.startGame).Methods("POST")
+	h.r.HandleFunc("/avi/games", h.getGames).Methods("GET")
+	h.r.HandleFunc("/avi/games/{id}", h.streamGame).Methods("GET")
 	return nil
 }
 
@@ -98,20 +98,46 @@ func (h *Handler) getFleets(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(fleets)
 }
 
-type replaysResponse struct {
-	Replays []Replay `json:"replays"`
+type Game struct {
+	ID     string    `json:"id"`
+	Date   time.Time `json:"date"`
+	Active bool      `json:"active"`
 }
 
-func (h *Handler) getReplays(w http.ResponseWriter, r *http.Request) {
+type gamesResponse struct {
+	Games map[string]Game `json:"games"`
+}
+
+func (h *Handler) getGames(w http.ResponseWriter, r *http.Request) {
+	games := make(map[string]Game)
+	n := time.Now()
+
 	h.mu.RLock()
+	for id := range h.activeGames {
+		games[id] = Game{
+			ID:     id,
+			Date:   n,
+			Active: true,
+		}
+	}
 	replays, err := h.data.Replays()
 	h.mu.RUnlock()
+
 	if err != nil {
 		h.error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	for _, r := range replays {
+		if _, ok := games[r.GameID]; !ok {
+			games[r.GameID] = Game{
+				ID:     r.GameID,
+				Date:   r.Date,
+				Active: false,
+			}
+		}
+	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(replaysResponse{Replays: replays})
+	json.NewEncoder(w).Encode(gamesResponse{Games: games})
 }
 
 type jsonError struct {
@@ -174,15 +200,10 @@ func (h *Handler) startGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := randString(gameIDLen)
-	rw, err := h.data.NewReplay(id)
-	if err != nil {
-		h.error(w, fmt.Sprintf("failed to create replay file: %v", err), http.StatusInternalServerError)
-		return
-	}
-	g := newGame(id)
+	replay := h.data.NewReplay(id)
+	finished := make(chan struct{})
+	g := newGame(id, replay, finished)
 	h.activeGames[id] = g
-
-	g.replay = rw
 
 	sim, err := avi.NewSimulation(
 		m,
@@ -197,6 +218,20 @@ func (h *Handler) startGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	g.sim = sim
+
+	if err := g.Open(); err != nil {
+		h.error(w, fmt.Sprintf("failed to start game: %v", err), http.StatusNotFound)
+		return
+	}
+
+	go func() {
+		// Wait till game finishes
+		<-finished
+		g.Close()
+		h.mu.Lock()
+		delete(h.activeGames, id)
+		h.mu.Unlock()
+	}()
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(startGameResponse{ID: id})
@@ -230,10 +265,6 @@ func (h *Handler) streamGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := g.Open(); err != nil {
-		h.error(w, fmt.Sprintf("failed to start game: %v", err), http.StatusNotFound)
-		return
-	}
 	w.WriteHeader(http.StatusOK)
 	g.Stream(w)
 }

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/snappy"
 	"github.com/nathanielc/avi"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -121,21 +120,23 @@ func (r Replay) ReadCloser() (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := snappy.NewReader(f)
-	return readCloser{
-		Reader: s,
-		Closer: f,
-	}, nil
+	return f, nil
 }
 
-func (d *data) NewReplay(gameID string) (io.WriteCloser, error) {
-	fpath := path.Join(d.replaysPath, gameID+".ravi")
-	f, err := os.Create(fpath)
+func (r Replay) WriteCloser() (io.WriteCloser, error) {
+	f, err := os.Create(r.fpath)
 	if err != nil {
 		return nil, err
 	}
-	s := snappy.NewWriter(f)
-	return s, nil
+	return f, nil
+}
+
+func (d *data) NewReplay(gameID string) Replay {
+	fpath := path.Join(d.replaysPath, gameID+".ravi")
+	return Replay{
+		GameID: gameID,
+		fpath:  fpath,
+	}
 }
 
 func (d *data) Replays() ([]Replay, error) {

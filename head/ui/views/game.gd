@@ -30,8 +30,8 @@ func _process(delta):
 		last_frame = null
 		var score_txt = "Scores:\n"
 		for fleet in frame['Scores'].keys():
-			score_txt += ("%-20s%4d\n" % [fleet, frame['Scores'][fleet]])
-		score_txt += "\n\nTime: %0.02fs" % t
+			score_txt += ("%-20s%4.02f\n" % [fleet, frame['Scores'][fleet]])
+		score_txt += "\n\nTime: %0.01fs\nGameID: %s" % [t, global.game_id]
 		get_node("hud/scores").set_text(score_txt)
 		for id in frame['DeletedObjects']:
 			if objects.has(id):

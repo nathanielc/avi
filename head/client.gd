@@ -66,8 +66,8 @@ func get_part_sets():
 func get_fleets():
 	return _do(HTTPClient.METHOD_GET, "/avi/fleets", null)
 	
-func get_replays():
-	return _do(HTTPClient.METHOD_GET, "/avi/replays", null)
+func get_games():
+	return _do(HTTPClient.METHOD_GET, "/avi/games", null)
 	
 func start_game(map, part_set, fleets):
 	var r = _do(HTTPClient.METHOD_POST, "/avi/games", {"map" : map, "part_set" : part_set, "fleets": fleets})

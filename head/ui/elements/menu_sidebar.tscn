@@ -41,15 +41,15 @@ margin/bottom = 202.0
 
 text = "New Battle"
 
-[node name="watch_replay" parent="." instance=ExtResource( 3 )]
+[node name="watch_game" parent="." instance=ExtResource( 3 )]
 
 hint/tooltip = "Join an existing server."
 margin/top = 210.0
 margin/bottom = 252.0
 
-[node name="Label" parent="watch_replay"]
+[node name="Label" parent="watch_game"]
 
-text = "Watch Replay"
+text = "Watch Games"
 
 [node name="quit" parent="." instance=ExtResource( 3 )]
 
@@ -75,5 +75,5 @@ stretch_mode = 0
 
 
 [editable path="new_battle"]
-[editable path="watch_replay"]
+[editable path="watch_game"]
 [editable path="quit"]
