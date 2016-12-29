@@ -192,10 +192,10 @@ func BenchmarkTick(b *testing.B) {
 	ship1 := newOneDirPilot(lmath.Vec3{1, 1, 1})
 	radius := 10000.0
 	maxVel := radius / 10
-	sim, err := NewSimulation(&MapConf{
+	sim, err := NewSimulation(MapConf{
 		Radius: int64(radius),
 	},
-		nil,
+		PartSetConf{},
 		nil,
 		nil,
 		-1,
@@ -249,7 +249,7 @@ func (self *oneDirPilot) Tick(tick int64) {
 func (self *oneDirPilot) JoinFleet(f string) {
 }
 
-func (self *oneDirPilot) LinkParts(shipParts []ShipPartConf, availableParts *PartSetConf) ([]Part, error) {
+func (self *oneDirPilot) LinkParts(shipParts []ShipPartConf, availableParts PartSetConf) ([]Part, error) {
 	self.engine = NewEngine001(lmath.Vec3{0, 0, 1})
 
 	self.thruster = NewThruster001(lmath.Vec3{0, -1, 0})

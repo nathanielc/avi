@@ -15,6 +15,7 @@ type ObjectUpdate struct {
 }
 
 type Frame struct {
+	Time           float32
 	Scores         map[string]float32
 	NewObjects     []NewObject
 	ObjectUpdates  []ObjectUpdate

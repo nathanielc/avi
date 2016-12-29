@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,7 +26,7 @@ type Simulation struct {
 	astds      []*asteroid
 	tick       int64
 	maxTicks   int64
-	radius     int64
+	radius     float64
 	sectorSize int64
 	//Number of ships alive from each fleet
 	survivors map[string]int
@@ -61,7 +62,7 @@ func NewSimulation(
 	}
 	maxTicks := int64(float64(maxTime/time.Second) / float64(SecondsPerTick))
 	sim := &Simulation{
-		radius:         mp.Radius,
+		radius:         float64(mp.Radius),
 		availableParts: parts,
 		survivors:      make(map[string]int),
 		scores:         make(map[string]float64),
@@ -117,11 +118,6 @@ func (sim *Simulation) AddShip(fleet string, pos lmath.Vec3, pilot Pilot, conf S
 }
 func (sim *Simulation) removeShip(i int) {
 
-	ship := sim.ships[i]
-	sim.ships = append(sim.ships[:i], sim.ships[i+1:]...)
-	sim.deleted = append(sim.deleted, ship.ID())
-
-	sim.survivors[ship.fleet]--
 }
 
 func (sim *Simulation) addProjectile(pos, vel lmath.Vec3, mass, radius float64) {
@@ -212,24 +208,83 @@ func (sim *Simulation) Start() {
 		sim.scores[fleet] = 0.0
 	}
 
-	fleet, score := sim.loop()
+	c := sim.loop()
 
 	glog.Infoln("All scores:", sim.scores)
-	glog.Infof("%s win with %f @ tick: %d!!!", fleet, score, sim.tick)
+	glog.Infof("%s win with %f beacuse %s, @ tick: %d!!!", strings.Join(c.Winners, ", "), c.Score, c.Reason, sim.tick)
 }
 
-func (sim *Simulation) loop() (string, float64) {
-	cont := true
-	score := 0.0
-	maxTicks := sim.maxTicks
-	glog.Infoln("MaxTicks", maxTicks)
+type Condition struct {
+	// Winners reports the names of the winning fleets.
+	Winners []string
+	Score   float64
+	// Reason contains the reason for game end.
+	Reason string
+}
+
+func (sim *Simulation) checkEndConditions() (Condition, bool) {
+	bestFleets, score := sim.bestFleets()
+	end := false
+	var reason string
+	switch {
+	case sim.tick >= sim.maxTicks:
+		reason = "max ticks reached"
+		end = true
+	case len(sim.ships) == 0:
+		reason = "all ships have been destroyed"
+		end = true
+	case score > sim.maxScore:
+		reason = "max score reached"
+		end = true
+	default:
+		// Check if last survivor has best score
+		var numSurvivors int
+		var survivor string
+		for fleet, n := range sim.survivors {
+			if n > 0 {
+				numSurvivors++
+				survivor = fleet
+			}
+		}
+		if numSurvivors == 1 {
+			if len(bestFleets) == 1 && bestFleets[0] == survivor {
+				reason = "last surviving fleet has best score"
+				end = true
+			}
+		}
+	}
+	return Condition{
+		Winners: bestFleets,
+		Score:   score,
+		Reason:  reason,
+	}, end
+}
+
+func (sim *Simulation) bestFleets() (bestFleets []string, bestScore float64) {
+	// Find the highest score
+	for _, score := range sim.scores {
+		if score > bestScore {
+			bestScore = score
+		}
+	}
+	// Find best fleets
+	for fleet, score := range sim.scores {
+		if score == bestScore {
+			bestFleets = append(bestFleets, fleet)
+		}
+	}
+	return
+}
+
+func (sim *Simulation) loop() Condition {
+	glog.Infoln("MaxTicks", sim.maxTicks)
 	tickPerSecond := int64(1 / float64(SecondsPerTick))
 	var added, existing []Drawable
-	for cont && !(maxTicks > 0 && maxTicks < sim.tick+1) && (score < sim.maxScore) && len(sim.ships) > 0 {
+	for {
 		if sim.tick%tickPerSecond == 0 {
 			glog.Infoln("TICK:", sim.tick)
 		}
-		score, cont = sim.doTick()
+		sim.doTick()
 		if sim.stream != nil && sim.tick%sim.rate == 0 {
 			for _, d := range sim.ships {
 				if _, ok := sim.added[d.id]; !ok {
@@ -256,21 +311,16 @@ func (sim *Simulation) loop() (string, float64) {
 				added = append(added, d)
 				delete(sim.added, id)
 			}
-			sim.stream.Draw(sim.scores, added, existing, sim.deleted)
+			sim.stream.Draw(float64(sim.tick)*SecondsPerTick, sim.scores, added, existing, sim.deleted)
 			sim.deleted = sim.deleted[0:0]
 			added = added[0:0]
 			existing = existing[0:0]
 		}
-	}
-	var fleet string
-	score = 0.0
-	for f, s := range sim.scores {
-		if s > score {
-			fleet = f
-			score = s
+		// Check game end conditions
+		if c, end := sim.checkEndConditions(); end {
+			return c
 		}
 	}
-	return fleet, score
 }
 
 func (sim *Simulation) doTick() (float64, bool) {
@@ -279,6 +329,7 @@ func (sim *Simulation) doTick() (float64, bool) {
 	sim.tickShips()
 	sim.propagateObjects()
 	sim.collideObjects()
+	sim.destroyShips()
 	sim.tick++
 	return score, true
 }
@@ -376,22 +427,32 @@ func (sim *Simulation) collideObjects() {
 		glog.Infoln("Colliding projectiles", len(sim.projs))
 	}
 
-	// Projectiles call only collide once
+	// Projectiles can only collide once
+	// So filter them out if they do
+	projs := sim.projs[0:0]
 projectiles:
 	for _, p := range sim.projs {
 		// Collide projectiles with ships
 		for _, ship := range sim.ships {
 			if collide(p, ship, PO_COR) {
+				sim.deleted = append(sim.deleted, p.ID())
 				continue projectiles
 			}
 		}
 		// Collide projectiles with inerts
 		for _, inrt := range sim.inrts {
 			if collide(p, inrt, PO_COR) {
+				sim.deleted = append(sim.deleted, p.ID())
 				continue projectiles
 			}
 		}
+		// Projectile didn't collide so keep it around, unless
+		// it left the play area.
+		if p.Position().Length() < sim.radius {
+			projs = append(projs, p)
+		}
 	}
+	sim.projs = projs
 }
 
 func collide(obj1, obj2 Object, cor float64) bool {
@@ -489,4 +550,17 @@ func resolveCollision(obj1, obj2 Object, cor float64) {
 
 	obj1.setVelocity(v1.Add(impulse.MulScalar(im1)))
 	obj2.setVelocity(v2.Sub(impulse.MulScalar(im2)))
+}
+
+func (sim *Simulation) destroyShips() {
+	ships := sim.ships[0:0]
+	for _, ship := range sim.ships {
+		if ship.Health() <= 0 || ship.Position().Length() > sim.radius {
+			sim.deleted = append(sim.deleted, ship.ID())
+			sim.survivors[ship.fleet]--
+		} else {
+			ships = append(ships, ship)
+		}
+	}
+	sim.ships = ships
 }
