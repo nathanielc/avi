@@ -38,5 +38,3 @@ func _on_quit_pressed():
 	
 func _on_fullscreen_pressed():
 	OS.set_window_fullscreen(true)
-
-
