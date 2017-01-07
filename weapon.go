@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 var OutOfAmmoError = errors.New("Out of ammunition")
@@ -33,7 +33,7 @@ type WeaponConf struct {
 	Cooldown     float64 `yaml:"cooldown" json:"cooldown"`
 }
 
-func NewWeapon001(pos lmath.Vec3) *Weapon {
+func NewWeapon001(pos mgl64.Vec3) *Weapon {
 	return &Weapon{
 		partT: partT{
 			objectT: objectT{
@@ -51,7 +51,7 @@ func NewWeapon001(pos lmath.Vec3) *Weapon {
 	}
 }
 
-func NewWeaponFromConf(pos lmath.Vec3, conf WeaponConf) *Weapon {
+func NewWeaponFromConf(pos mgl64.Vec3, conf WeaponConf) *Weapon {
 	return &Weapon{
 		partT: partT{
 			objectT: objectT{
@@ -73,8 +73,8 @@ func (self *Weapon) Mass() float64 {
 	return self.mass + float64(self.ammoCapacity)*self.ammoMass
 }
 
-func (self *Weapon) Fire(dir lmath.Vec3) error {
-	if l := dir.LengthSq(); math.IsNaN(l) || l == 0 {
+func (self *Weapon) Fire(dir mgl64.Vec3) error {
+	if l := LengthSq(dir); math.IsNaN(l) || l == 0 {
 		err := errors.New(fmt.Sprintf("Invalid direction %s", dir))
 		return err
 	}
@@ -96,11 +96,11 @@ func (self *Weapon) Fire(dir lmath.Vec3) error {
 		return err
 	}
 	force := self.ammoMass * self.ammoVelocity
-	self.ship.ApplyThrust(dir.MulScalar(-1.0), force)
+	self.ship.ApplyThrust(dir.Mul(-1.0), force)
 
-	norm, _ := dir.Normalized()
-	pos := norm.MulScalar(self.ship.radius + 1).Add(self.ship.position)
-	vel := norm.MulScalar(self.ammoVelocity).Add(self.ship.velocity)
+	norm := dir.Normalize()
+	pos := norm.Mul(self.ship.radius + 1).Add(self.ship.position)
+	vel := norm.Mul(self.ammoVelocity).Add(self.ship.velocity)
 
 	self.ship.sim.addProjectile(pos, vel, self.ammoMass, self.ammoRadius)
 

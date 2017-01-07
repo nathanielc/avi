@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 type ID uint32
@@ -14,10 +14,10 @@ const NilID = math.MaxUint32
 type Object interface {
 	ID() ID
 	setID(ID)
-	Position() lmath.Vec3
-	setPosition(lmath.Vec3)
-	Velocity() lmath.Vec3
-	setVelocity(lmath.Vec3)
+	Position() mgl64.Vec3
+	setPosition(mgl64.Vec3)
+	Velocity() mgl64.Vec3
+	setVelocity(mgl64.Vec3)
 	Radius() float64
 	Mass() float64
 	Health() float64
@@ -26,8 +26,8 @@ type Object interface {
 
 type objectT struct {
 	id       ID
-	position lmath.Vec3
-	velocity lmath.Vec3
+	position mgl64.Vec3
+	velocity mgl64.Vec3
 	radius   float64
 	mass     float64
 	health   float64
@@ -41,24 +41,24 @@ func (o *objectT) setID(id ID) {
 	o.id = id
 }
 
-func (o *objectT) Position() lmath.Vec3 {
+func (o *objectT) Position() mgl64.Vec3 {
 	return o.position
 }
 
-func (o *objectT) setPosition(pos lmath.Vec3) {
-	if math.IsNaN(pos.X) {
+func (o *objectT) setPosition(pos mgl64.Vec3) {
+	if math.IsNaN(pos.X()) {
 		err := errors.New("NaN detected")
 		panic(err)
 	}
 	o.position = pos
 }
 
-func (o *objectT) Velocity() lmath.Vec3 {
+func (o *objectT) Velocity() mgl64.Vec3 {
 	return o.velocity
 }
 
-func (o *objectT) setVelocity(v lmath.Vec3) {
-	if math.IsNaN(v.X) {
+func (o *objectT) setVelocity(v mgl64.Vec3) {
+	if math.IsNaN(v.X()) {
 		err := errors.New("NaN detected")
 		panic(err)
 	}

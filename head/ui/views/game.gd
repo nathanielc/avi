@@ -12,6 +12,7 @@ var mode = MODE_PLAY
 var time_speed = 1.0
 var dirty = false
 var user_sliding = false
+var max_time = 0
 
 var objects = {}
 
@@ -116,8 +117,10 @@ func _process(delta):
 			break
 
 func _update_slider(t, m):
+	if t > max_time:
+		max_time = t
 	if global.is_live:
-		m = t
+		m = max_time
 	if !user_sliding:
 		time_slider.set_unit_value(t/m)
 		time_max_label.set_text(_format_m_s(m))

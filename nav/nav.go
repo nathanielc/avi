@@ -3,8 +3,7 @@ package nav
 import (
 	"errors"
 
-	"azul3d.org/engine/lmath"
-
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
 )
@@ -12,7 +11,7 @@ import (
 var NoMoreWaypoints = errors.New("No more waypoints")
 
 type Waypoint struct {
-	Position  lmath.Vec3
+	Position  mgl64.Vec3
 	MaxSpeed  float64
 	Tolerance float64
 }
@@ -45,7 +44,7 @@ func (nav *Nav) AddWaypoint(wp Waypoint) {
 	nav.waypoints.Push(wp)
 }
 
-func (nav *Nav) Tick(pos, vel lmath.Vec3) error {
+func (nav *Nav) Tick(pos, vel mgl64.Vec3) error {
 	if !nav.set {
 		var ok bool
 		nav.next, ok = nav.waypoints.Pop()
@@ -60,7 +59,7 @@ func (nav *Nav) Tick(pos, vel lmath.Vec3) error {
 	}
 
 	delta := nav.next.Position.Sub(pos)
-	distance := delta.Length()
+	distance := delta.Len()
 
 	t := nav.next.Tolerance
 
@@ -72,19 +71,19 @@ func (nav *Nav) Tick(pos, vel lmath.Vec3) error {
 		return nil
 	}
 
-	n, _ := delta.Normalized()
-	desiredVel := n.MulScalar(nav.next.MaxSpeed)
+	n := delta.Normalize()
+	desiredVel := n.Mul(nav.next.MaxSpeed)
 
 	accerlation := desiredVel.Sub(vel)
 
 	return nav.thrust(accerlation)
 }
 
-func (nav *Nav) thrust(acc lmath.Vec3) error {
+func (nav *Nav) thrust(acc mgl64.Vec3) error {
 	if glog.V(3) {
 		glog.Infoln("Thrusting", acc)
 	}
-	scaled := acc.MulScalar(1.0 / float64(len(nav.thrusters)))
+	scaled := acc.Mul(1.0 / float64(len(nav.thrusters)))
 	for _, thruster := range nav.thrusters {
 		err := thruster.Thrust(scaled)
 		if err != nil {

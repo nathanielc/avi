@@ -3,7 +3,7 @@ package avi
 import (
 	"errors"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 type Thruster struct {
@@ -20,7 +20,7 @@ type ThrusterConf struct {
 	Energy float64 `yaml:"energy" json:"energy"`
 }
 
-func NewThruster001(pos lmath.Vec3) *Thruster {
+func NewThruster001(pos mgl64.Vec3) *Thruster {
 	return &Thruster{
 		partT: partT{
 			objectT: objectT{
@@ -34,7 +34,7 @@ func NewThruster001(pos lmath.Vec3) *Thruster {
 	}
 }
 
-func NewThrusterFromConf(pos lmath.Vec3, conf ThrusterConf) *Thruster {
+func NewThrusterFromConf(pos mgl64.Vec3, conf ThrusterConf) *Thruster {
 	return &Thruster{
 		partT: partT{
 			objectT: objectT{
@@ -55,13 +55,13 @@ func (self *Thruster) GetForce() float64 {
 // Fire the thruster the length of dir indicates how hard
 // to fire the thruster. The length should equal to the
 // accerlation to apply to the ship.
-func (self *Thruster) Thrust(dir lmath.Vec3) error {
+func (self *Thruster) Thrust(dir mgl64.Vec3) error {
 	if self.used {
 		return errors.New("Already used thruster this tick")
 	}
 	self.used = true
 
-	force := self.ship.mass * dir.Length()
+	force := self.ship.mass * dir.Len()
 	if force > self.force {
 		force = self.force
 	}
@@ -70,7 +70,7 @@ func (self *Thruster) Thrust(dir lmath.Vec3) error {
 	if err != nil {
 		return err
 	}
-	n, _ := dir.Normalized()
-	self.ship.ApplyAcc(n.MulScalar(force / self.ship.mass))
+	n := dir.Normalize()
+	self.ship.ApplyAcc(n.Mul(force / self.ship.mass))
 	return nil
 }
