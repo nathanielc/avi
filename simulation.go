@@ -3,6 +3,7 @@ package avi
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"strings"
 	"sync"
@@ -42,6 +43,7 @@ type Simulation struct {
 	deleted []ID
 
 	rate int64
+	fps  float64
 
 	mu sync.Mutex
 	// Ships tick wait group
@@ -60,6 +62,8 @@ func NewSimulation(
 	if rate < 1 {
 		rate = 1
 	}
+	correctedFPS := 1.0 / (float64(rate) * SecondsPerTick)
+	log.Println("correctedFPS", correctedFPS)
 	maxTicks := int64(float64(maxTime/time.Second) / float64(SecondsPerTick))
 	sim := &Simulation{
 		radius:         float64(mp.Radius),
@@ -71,6 +75,7 @@ func NewSimulation(
 		maxTicks:       maxTicks,
 		stream:         stream,
 		added:          make(map[ID]Drawable),
+		fps:            correctedFPS,
 	}
 	// Add Control Points
 	for _, cp := range mp.ControlPoints {
@@ -97,6 +102,10 @@ func NewSimulation(
 
 	}
 	return sim, nil
+}
+
+func (sim *Simulation) CorrectedFPS() float64 {
+	return sim.fps
 }
 
 func (sim *Simulation) getNextID() ID {

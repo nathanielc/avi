@@ -1,9 +1,8 @@
-[gd_scene load_steps=5 format=1]
+[gd_scene load_steps=4 format=1]
 
 [ext_resource path="res://ui/elements/connect.gd" type="Script" id=1]
-[ext_resource path="res://ui/images/gear.png" type="Texture" id=2]
+[ext_resource path="res://ui/images/gear_connected.png" type="Texture" id=2]
 [ext_resource path="res://ui/images/gear_pressed.png" type="Texture" id=3]
-[ext_resource path="res://ui/images/gear_hover.png" type="Texture" id=4]
 
 [node name="Control" type="Control"]
 
@@ -48,7 +47,6 @@ enabled_focus_mode = 2
 shortcut = null
 textures/normal = ExtResource( 2 )
 textures/pressed = ExtResource( 3 )
-textures/hover = ExtResource( 4 )
 params/scale = Vector2( 0.25, 0.25 )
 
 

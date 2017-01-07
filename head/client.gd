@@ -1,32 +1,75 @@
 extends Node
 
+const STATUS_DISCONNECTED = 0
+const STATUS_CONNECTED = 1
+const ping_interval = 5
+
 var host = null
 var port = null
+var tcp = null
+var http = null
+var status = STATUS_DISCONNECTED
+var time = 0
 
 func _ready():
-	pass
+	set_process(true)
+	
+func _process(delta):
+	if status == STATUS_CONNECTED:
+		time += delta
+		if time > ping_interval:
+			_ping()
+			time = 0
 	
 func connect(h, p):
 	host = h
 	port = p
-	var r = _do(HTTPClient.METHOD_GET, "/avi/ping", null)
-	if r.has('pong'):
-		return OK
-	return "failed to connect"
+	return _ping()
 
+func _ping():
+	var err = _do(HTTPClient.METHOD_GET, "/avi/ping", null)
+	if err.is_ok():
+		var r = err.value()
+		if r.has('pong'):
+			status = STATUS_CONNECTED
+			return global.ok(OK)
+	
+	status = STATUS_DISCONNECTED
+	return global.err("failed to connect to AVI server")
+
+func is_connected():
+	return status == STATUS_CONNECTED
+
+func _connect_tcp():
+	if true or (tcp == null or !tcp.is_connected()):
+		tcp = StreamPeerTCP.new()
+		var err = tcp.connect(host, port)
+		if err != OK:
+			return err
+	return OK
+	
+func _connect_http():
+	if http == null or http.get_status() != HTTPClient.STATUS_CONNECTED:
+		http = HTTPClient.new()
+		var err = http.connect(host, port)
+		if err != OK:
+			return global.err("failed to connect to HTTP server")
+			
+		# Wait until resolved and connected
+		var itr = 0
+		while itr < 5 and http.get_status() == HTTPClient.STATUS_CONNECTING or http.get_status() == HTTPClient.STATUS_RESOLVING:
+			OS.delay_msec(5)
+			http.poll()
+			itr += 1
+	
+		if http.get_status() != HTTPClient.STATUS_CONNECTED:
+			return global.err("timedout connecting to HTTP server")
+	return global.ok(OK)
 
 func _do(method, path, data):
-	var http = HTTPClient.new()
-	var err = http.connect(host, port)
-	if err != OK:
-		return {}
-		
-	# Wait until resolved and connected
-	while http.get_status() == HTTPClient.STATUS_CONNECTING or http.get_status() == HTTPClient.STATUS_RESOLVING:
-		http.poll()
-
-	if http.get_status() != HTTPClient.STATUS_CONNECTED:
-		return {}
+	var err = _connect_http()
+	if !err.is_ok():
+		return err
 
 	var body = ""
 	var headers = []
@@ -41,7 +84,7 @@ func _do(method, path, data):
 	# Make sure request finished well.
 	if !(http.get_status() == HTTPClient.STATUS_BODY or http.get_status() == HTTPClient.STATUS_CONNECTED ):
 		http.close()
-		return {}
+		return global.err("failed to make HTTP request")
 
 	var response = {}
 	if (http.has_response()):
@@ -54,8 +97,7 @@ func _do(method, path, data):
 			if chunk.size() > 0:
 				rb = rb + chunk # Append to read buffer
 		response.parse_json(rb.get_string_from_utf8())
-	http.close()
-	return response
+	return global.ok(response)
 
 func get_maps():
 	return _do(HTTPClient.METHOD_GET, "/avi/maps", null)
@@ -70,37 +112,103 @@ func get_games():
 	return _do(HTTPClient.METHOD_GET, "/avi/games", null)
 	
 func start_game(map, part_set, fleets):
-	var r = _do(HTTPClient.METHOD_POST, "/avi/games", {"map" : map, "part_set" : part_set, "fleets": fleets})
-	if r.has('id'):
-		return r['id']
-	return null
+	var err = _do(HTTPClient.METHOD_POST, "/avi/games", {"map" : map, "part_set" : part_set, "fleets": fleets})
+	if err.is_ok():
+		var r = err.value()
+		if r.has('id'):
+			return global.ok(r['id'])
+		err = global.err("missing ID in response")
+	return global.wrap(err, "failed to start game")
 	
+const http_line       = 1
+const header_key      = 2
+const header_delim    = 3
+const header_value    = 4
+const first_carriage  = 5
+const first_newline   = 6
+const second_carriage = 7
+const second_newline  = 8
 
-func get_frames(game_id):
+func get_frames(game_id, start, stop):
 	# Hand crafted HTTP client, so we can pass the tcp connection on to PacketPeerStream
-	var tcp = StreamPeerTCP.new()
-	var err = tcp.connect(host, port)
+	var err = _connect_tcp()
 	if err != OK:
-		return null
+		return global.err("failed to connect to server")
+		
 	# Use of  HTTP 1.0 is explicit so that we do not get chunked encoded responses.
-	var err = tcp.put_data(("GET /avi/games/%s HTTP/1.0\r\nHost: localhost:4242\r\nUser-Agent: avi_head\r\nAccept: */*\r\n\r\n" % game_id).to_ascii())
+	var err = tcp.put_data(("GET /avi/games/%s?start=%d&stop=%d HTTP/1.0\r\nHost: %s\r\nUser-Agent: avi_head\r\nAccept: */*\r\n\r\n" % [game_id,start,stop, host]).to_ascii())
 	if err != OK:
-		return null
-	var state = 0
+		return global.err("failed to make HTTP request")
+		
+	var state = http_line
 	# Read and discard headers
-	while state != 4:
+	var code = 0
+	var headers = {}
+	var buf = RawArray()
+	var k = ""
+	var v = ""
+	while state != second_newline:
 		var b = tcp.get_u8()
-		if state == 0 and b == 13:
-			state = 1
-		elif state == 1 and b == 10:
-			state = 2
-		elif state == 2 and b == 13:
-			state = 3
-		elif state == 3 and b == 10:
-			state = 4
-		else:
-			state = 0
-	# The remain data is variant encoded objects
-	var frames = PacketPeerStream.new()
-	frames.set_stream_peer(tcp)
-	return frames
+		if state == http_line:
+			if b == 10:
+				var parts = buf.get_string_from_utf8().split(" ")
+				if parts.size() >= 2:
+					code = int(parts[1])
+				buf.resize(0)
+				state = header_key
+			else:
+				buf.append(b)
+		elif state == header_key:
+			if b == 58:
+				state = header_delim
+			else:
+				buf.append(b)
+		elif state == header_delim and b == 32:
+				k = buf.get_string_from_utf8()
+				buf.resize(0)
+				state = header_value
+		elif state == header_value:
+			if b == 13:
+				if k != "":
+					v = buf.get_string_from_utf8()
+					buf.resize(0)
+					headers[k] = v
+					k = ""
+					v = ""
+				state = first_carriage
+			else:
+				buf.append(b)
+		elif state == first_carriage and b == 10:
+			state = first_newline
+		elif state == first_newline:
+			if b == 13:
+				state = second_carriage
+			else:
+				state = header_key
+				buf.append(b)
+		elif state == second_carriage and b == 10:
+			state = second_newline
+	if code != 200:
+		# Read error message
+		buf.resize(0)
+		var depth = 0
+		while true:
+			var b = tcp.get_u8()
+			if b == 123:
+				depth += 1
+			elif b == 125:
+				depth -= 1
+			if depth == 0:
+				break
+			buf.append(b)
+		var r = {}
+		r.parse_json(buf.get_string_from_utf8())
+		var err_msg = r['error']
+		return global.err("non 200 repsonse code %d: %s" % [code, err_msg])
+	if !headers.has('Frame-Count') or !headers.has('Frames-Per-Second') or !headers.has('Total-Frame-Count') or !headers.has('Stop-Frame'):
+		return global.err("failed to understand server response")
+	# The remaing data is variant encoded objects
+	#var pps = PacketPeerStream.new()
+	#pps.set_stream_peer(tcp)
+	var frames = preload("res://frames.gd").new(tcp, int(headers['Content-Length']), float(headers['Frames-Per-Second']), int(headers['Stop-Frame']), int(headers['Total-Frame-Count']))
+	return global.ok(frames)

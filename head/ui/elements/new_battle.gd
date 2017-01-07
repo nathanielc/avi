@@ -8,25 +8,37 @@ func _ready():
 	# Called every time the node is added to the scene.
 	# Initialization here
 	get_node("start").connect("pressed", self, "_on_start_pressed")
-	var maps = global.client.get_maps()
-	for name in maps.keys():
-		get_node("maps").add_item(name)
-	get_node("maps").select(0)
-	get_node("maps").sort_items_by_text()
+	var err = global.client.get_maps()
+	if !err.is_ok():
+		global.fail(err)
+	else:
+		var maps = err.value()
+		for name in maps.keys():
+			get_node("maps").add_item(name)
+		get_node("maps").select(0)
+		get_node("maps").sort_items_by_text()
 		
-	var part_sets = global.client.get_part_sets()
-	for name in part_sets.keys():
-		get_node("part_sets").add_item(name)
-	get_node("part_sets").select(0)
-	get_node("part_sets").sort_items_by_text()
+	err = global.client.get_part_sets()
+	if !err.is_ok():
+		global.fail(err)
+	else:
+		var part_sets = err.value()
+		for name in part_sets.keys():
+			get_node("part_sets").add_item(name)
+		get_node("part_sets").select(0)
+		get_node("part_sets").sort_items_by_text()
 		
-	var fleets = global.client.get_fleets()
-	for name in fleets.keys():
-		get_node("fleets").add_item(name)
-	get_node("fleets").set_select_mode(ItemList.SELECT_MULTI)
-	get_node("fleets").sort_items_by_text()
-	get_node("fleets").select(0,false)
-	get_node("fleets").select(1,false)
+	err = global.client.get_fleets()
+	if !err.is_ok():
+		global.fail(err)
+	else:
+		var fleets = err.value()
+		for name in fleets.keys():
+			get_node("fleets").add_item(name)
+		get_node("fleets").set_select_mode(ItemList.SELECT_MULTI)
+		get_node("fleets").sort_items_by_text()
+		get_node("fleets").select(0,false)
+		get_node("fleets").select(1,false)
 
 
 func _on_start_pressed():
@@ -36,6 +48,9 @@ func _on_start_pressed():
 	var fleets = []
 	for i in get_node("fleets").get_selected_items():
 		fleets.append(get_node("fleets").get_item_text(i))
-	
-	global.game_id = global.client.start_game(map, part_set, fleets)
+	var err = global.client.start_game(map, part_set, fleets)
+	if !err.is_ok():
+		global.fail(err)
+	global.game_id = err.value()
+	global.is_live = true
 	global.goto_scene("res://ui/views/game.tscn")

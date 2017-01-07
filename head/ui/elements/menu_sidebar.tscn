@@ -73,7 +73,17 @@ margin/bottom = 138.0
 texture = ExtResource( 4 )
 stretch_mode = 0
 
+[node name="fullscreen" parent="." instance=ExtResource( 3 )]
+
+margin/top = 900.0
+margin/bottom = 942.0
+
+[node name="Label" parent="fullscreen"]
+
+text = "Fullscreen"
+
 
 [editable path="new_battle"]
 [editable path="watch_game"]
 [editable path="quit"]
+[editable path="fullscreen"]

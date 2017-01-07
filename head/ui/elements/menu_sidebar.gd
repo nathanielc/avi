@@ -7,11 +7,13 @@ func _ready():
 	# Initialization here
 	get_node("new_battle").connect("pressed", self, "_on_new_battle_pressed")
 	get_node("watch_game").connect("pressed", self, "_on_watch_game_pressed")
+	get_node("fullscreen").connect("pressed", self, "_on_fullscreen_pressed")
 	get_node("quit").connect("pressed", self, "_on_quit_pressed")
 	set_process(true)
 	
 
 func _clear_nodes():
+	global.clear_error()
 	var parent = get_node("../")
 	for name in ["../new_battle_menu","../watch_replay_menu"]:
 		if has_node(name):
@@ -33,5 +35,8 @@ func _on_watch_game_pressed():
 
 func _on_quit_pressed():
 	get_tree().quit()
+	
+func _on_fullscreen_pressed():
+	OS.set_window_fullscreen(true)
 
 
