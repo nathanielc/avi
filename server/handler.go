@@ -6,12 +6,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/nathanielc/avi"
+	"github.com/pkg/errors"
 )
 
 const gameIDLen = 16
@@ -22,22 +25,25 @@ type Handler struct {
 
 	mu sync.RWMutex
 
-	activeGames map[string]*game
-	data        *data
+	games map[string]*game
+	data  *data
 }
 
 func newHandler(d *data) *Handler {
 	r := mux.NewRouter()
 	lh := handlers.CombinedLoggingHandler(os.Stderr, r)
 	return &Handler{
-		r:           r,
-		h:           lh,
-		data:        d,
-		activeGames: make(map[string]*game),
+		r:     r,
+		h:     lh,
+		data:  d,
+		games: make(map[string]*game),
 	}
 }
 
 func (h *Handler) Open() error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
 	h.r.HandleFunc("/avi/ping", h.ping).Methods("GET")
 	h.r.HandleFunc("/avi/maps", h.getMaps).Methods("GET")
 	h.r.HandleFunc("/avi/part_sets", h.getParts).Methods("GET")
@@ -45,13 +51,22 @@ func (h *Handler) Open() error {
 	h.r.HandleFunc("/avi/games", h.startGame).Methods("POST")
 	h.r.HandleFunc("/avi/games", h.getGames).Methods("GET")
 	h.r.HandleFunc("/avi/games/{id}", h.streamGame).Methods("GET")
+
+	replays, err := h.data.Replays()
+	if err != nil {
+		return err
+	}
+	for _, r := range replays {
+		g, err := newGame(r.GameID, r)
+		if err != nil {
+			return errors.Wrapf(err, "failed to open previous game %s", r.GameID)
+		}
+		h.games[r.GameID] = g
+	}
 	return nil
 }
 
 func (h *Handler) Close() {
-	for _, g := range h.activeGames {
-		g.Close()
-	}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -110,32 +125,13 @@ type gamesResponse struct {
 
 func (h *Handler) getGames(w http.ResponseWriter, r *http.Request) {
 	games := make(map[string]Game)
-	n := time.Now()
 
 	h.mu.RLock()
-	for id := range h.activeGames {
-		games[id] = Game{
-			ID:     id,
-			Date:   n,
-			Active: true,
-		}
+	for id, g := range h.games {
+		games[id] = g.Info()
 	}
-	replays, err := h.data.Replays()
 	h.mu.RUnlock()
 
-	if err != nil {
-		h.error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	for _, r := range replays {
-		if _, ok := games[r.GameID]; !ok {
-			games[r.GameID] = Game{
-				ID:     r.GameID,
-				Date:   r.Date,
-				Active: false,
-			}
-		}
-	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(gamesResponse{Games: games})
 }
@@ -156,6 +152,7 @@ type startGameRequest struct {
 	FPS     int      `json:"fps"`
 	MaxTime int64    `json:"max_time"`
 }
+
 type startGameResponse struct {
 	ID string `json:"id"`
 }
@@ -201,9 +198,12 @@ func (h *Handler) startGame(w http.ResponseWriter, r *http.Request) {
 
 	id := randString(gameIDLen)
 	replay := h.data.NewReplay(id)
-	finished := make(chan struct{})
-	g := newGame(id, replay, finished)
-	h.activeGames[id] = g
+	g, err := newGame(id, replay)
+	if err != nil {
+		h.error(w, fmt.Sprintf("failed to create game: %v", err), http.StatusInternalServerError)
+		return
+	}
+	h.games[id] = g
 
 	sim, err := avi.NewSimulation(
 		m,
@@ -217,21 +217,11 @@ func (h *Handler) startGame(w http.ResponseWriter, r *http.Request) {
 		h.error(w, fmt.Sprintf("failed to create simulation: %v", err), http.StatusNotFound)
 		return
 	}
-	g.sim = sim
 
-	if err := g.Open(); err != nil {
+	if err := g.Start(sim); err != nil {
 		h.error(w, fmt.Sprintf("failed to start game: %v", err), http.StatusNotFound)
 		return
 	}
-
-	go func() {
-		// Wait till game finishes
-		<-finished
-		g.Close()
-		h.mu.Lock()
-		delete(h.activeGames, id)
-		h.mu.Unlock()
-	}()
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(startGameResponse{ID: id})
@@ -241,8 +231,25 @@ func (h *Handler) streamGame(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
+	var startFrame, stopFrame int
+	startFrameStr := r.URL.Query().Get("start")
+	f, err := strconv.ParseInt(startFrameStr, 10, 64)
+	if err != nil {
+		h.error(w, fmt.Sprintf("invalid start frame %q", startFrameStr), http.StatusBadRequest)
+		return
+	}
+	startFrame = int(f)
+
+	stopFrameStr := r.URL.Query().Get("stop")
+	f, err = strconv.ParseInt(stopFrameStr, 10, 64)
+	if err != nil {
+		h.error(w, fmt.Sprintf("invalid stop frame %q", stopFrameStr), http.StatusBadRequest)
+		return
+	}
+	stopFrame = int(f)
+
 	h.mu.RLock()
-	g, ok := h.activeGames[id]
+	g, ok := h.games[id]
 	h.mu.RUnlock()
 
 	if !ok {
@@ -250,21 +257,38 @@ func (h *Handler) streamGame(w http.ResponseWriter, r *http.Request) {
 		h.mu.RLock()
 		replay, err := h.data.Replay(id)
 		h.mu.RUnlock()
+		// Create game object for
 		if err != nil {
 			h.error(w, fmt.Sprintf("unknown game %q", id), http.StatusNotFound)
 			return
 		}
-		rc, err := replay.ReadCloser()
+		h.mu.Lock()
+		g, err = newGame(replay.GameID, replay)
 		if err != nil {
 			h.error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer rc.Close()
-		w.WriteHeader(http.StatusOK)
-		io.Copy(w, rc)
-		return
+		h.games[replay.GameID] = g
+		h.mu.Unlock()
 	}
 
+	s, err := g.Stream(startFrame, stopFrame)
+	if err != nil {
+		h.error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer s.Close()
+	w.Header().Add("Content-Length", strconv.FormatInt(s.Length, 10))
+	w.Header().Add("Frame-Count", strconv.Itoa(s.FrameCount))
+	w.Header().Add("Stop-Frame", strconv.Itoa(s.StopFrame))
+	w.Header().Add("Total-Frame-Count", strconv.Itoa(s.TotalFrames))
+	w.Header().Add("Frames-Per-Second", strconv.FormatFloat(s.FPS, 'f', -1, 64))
 	w.WriteHeader(http.StatusOK)
-	g.Stream(w)
+	if _, err := io.Copy(w, s); err != nil {
+		glog.Errorln("short write", err)
+	}
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+	return
 }

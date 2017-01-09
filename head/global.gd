@@ -3,10 +3,35 @@ extends Node
 var client = null
 var current_scene = null
 var game_id = null
+var error_msg = ""
+var is_live = false
+
+var _error = preload("res://error.gd")
 
 func _ready():
 	var root = get_tree().get_root()
 	current_scene = root.get_child(root.get_child_count() - 1)
+
+func err(msg):
+	return _error.new(msg, null, null)
+func wrap(err, msg):
+	return _error.new(msg, null, err)
+func ok(value):
+	return _error.new("", value, null)
+	
+func fail(err):
+	set_err(err)
+	goto_scene("res://ui/views/main.tscn")
+func clear_error():
+	global.error_msg = ""
+func set_err(err):
+	error_msg = "Error message: "+ err.message()
+
+func set_client(c):
+	if client != null:
+		remove_child(client)
+	client = c
+	add_child(client)
 
 func goto_scene(path):
 

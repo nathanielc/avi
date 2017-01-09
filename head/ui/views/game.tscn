@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=1]
+[gd_scene load_steps=6 format=1]
 
 [ext_resource path="res://ui/views/game.gd" type="Script" id=1]
 [ext_resource path="res://ui/elements/camera.tscn" type="PackedScene" id=2]
 [ext_resource path="res://ui/fonts/courier.fnt" type="BitmapFont" id=3]
 [ext_resource path="res://ui/elements/menu_btn.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/elements/time_slider.tscn" type="PackedScene" id=5]
 
 [node name="Spatial" type="Spatial"]
 
@@ -53,8 +54,8 @@ size_flags/horizontal = 2
 size_flags/vertical = 0
 margin/left = 20.0
 margin/top = 20.0
-margin/right = 62.0
-margin/bottom = 34.0
+margin/right = 80.0
+margin/bottom = 35.0
 custom_fonts/font = ExtResource( 3 )
 custom_colors/font_color = Color( 0.0865564, 0.871094, 0.0612488, 1 )
 text = "Scores"
@@ -64,14 +65,22 @@ max_lines_visible = -1
 
 [node name="quit" parent="hud" instance=ExtResource( 4 )]
 
+editor/display_folded = true
 margin/left = 1700.0
-margin/top = 1000.0
+margin/top = 1010.0
 margin/right = 1870.0
-margin/bottom = 1040.0
+margin/bottom = 1050.0
 
 [node name="Label" parent="hud/quit"]
 
 text = "Quit Game"
+
+[node name="time" parent="hud" instance=ExtResource( 5 )]
+
+margin/left = 450.0
+margin/top = 1000.0
+margin/right = 490.0
+margin/bottom = 1040.0
 
 
 [editable path="hud/quit"]

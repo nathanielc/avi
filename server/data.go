@@ -1,12 +1,10 @@
 package server
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/nathanielc/avi"
 	"github.com/pkg/errors"
@@ -15,7 +13,7 @@ import (
 
 const (
 	mapsPath     = "maps"
-	partSetsPath = "parts"
+	partSetsPath = "part_sets"
 	fleetsPath   = "fleets"
 	replaysPath  = "replays"
 )
@@ -109,28 +107,6 @@ func (d *data) Fleet(id string) (avi.FleetConf, error) {
 	return f, err
 }
 
-type Replay struct {
-	GameID string    `json:"game_id"`
-	Date   time.Time `json:"date"`
-	fpath  string
-}
-
-func (r Replay) ReadCloser() (io.ReadCloser, error) {
-	f, err := os.Open(r.fpath)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
-
-func (r Replay) WriteCloser() (io.WriteCloser, error) {
-	f, err := os.Create(r.fpath)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
-
 func (d *data) NewReplay(gameID string) Replay {
 	fpath := path.Join(d.replaysPath, gameID+".ravi")
 	return Replay{
@@ -211,9 +187,4 @@ func unmarshalYaml(p string, o interface{}) error {
 		return errors.Wrapf(err, "failed to read file %q", p)
 	}
 	return yaml.Unmarshal(data, o)
-}
-
-type readCloser struct {
-	io.Reader
-	io.Closer
 }

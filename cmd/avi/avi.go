@@ -4,7 +4,6 @@ import (
 	"flag"
 	"os"
 	"os/user"
-	"path"
 	"runtime/pprof"
 
 	"github.com/golang/glog"
@@ -15,7 +14,7 @@ import (
 var cpuProfile = flag.String("cpuprofile", "", "if defined save a cpu profile to path.")
 var memProfile = flag.String("memprofile", "", "if defined save a mem profile to path.")
 var bindAddr = flag.String("bind", "localhost:4242", "Network bind address")
-var dataDir = flag.String("data", "", "Data directory.")
+var dataDir = flag.String("data", "data", "Data directory.")
 
 func main() {
 
@@ -40,17 +39,9 @@ func main() {
 		defer pprof.Lookup("heap").WriteTo(f, 0)
 	}
 
-	dir := *dataDir
-	if dir == "" {
-		h, err := getHomeDir()
-		if err != nil {
-			glog.Fatal(err)
-		}
-		dir = path.Join(h, ".avi")
-	}
 	server, err := server.New(server.ServerConf{
 		Addr:    *bindAddr,
-		DataDir: dir,
+		DataDir: *dataDir,
 	})
 	if err != nil {
 		glog.Error(err)
