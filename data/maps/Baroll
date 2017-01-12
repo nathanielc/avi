@@ -1,0 +1,31 @@
+---
+radius: 1e6
+
+rules:
+  score: 175
+  max_fleet_mass: 1e5
+starting_points:
+  - [1000,0,0]
+  - [0,1000,0]
+control_points:
+  - mass: 1e6
+    radius: 1e1
+    position: [-100, 0 , 0]
+    points: 1
+    influence: 55
+asteroids:
+  - mass: 2e6
+    radius: 14e1
+    position: [40, 230, 552]
+  - mass: 1e6
+    radius: 2e1
+    position: [12, -200, -33]
+  - mass: 1e6
+    radius: 3e1
+    position: [223, 384, 32]
+  - mass: 1e6
+    radius: 1e1
+    position: [1, -10, -210]
+  - mass: 1e6
+    radius: 1e1
+    position: [-256, -78, 63]
