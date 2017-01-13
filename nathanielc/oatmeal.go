@@ -1,7 +1,7 @@
 package nathanielc
 
 import (
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
 	"github.com/nathanielc/avi/nav"
@@ -32,27 +32,27 @@ func (self *OatmealPilot) Tick(tick int64) {
 	if self.navComputer == nil {
 		self.navComputer = nav.NewNav(self.Thrusters)
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  lmath.Vec3{0, 800, 100},
+			Position:  mgl64.Vec3{0, 800, 100},
 			MaxSpeed:  50,
 			Tolerance: 10,
 		})
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  lmath.Vec3{0, 600, 0},
+			Position:  mgl64.Vec3{0, 600, 0},
 			MaxSpeed:  40,
 			Tolerance: 10,
 		})
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  lmath.Vec3{0, 500, 0},
+			Position:  mgl64.Vec3{0, 500, 0},
 			MaxSpeed:  20,
 			Tolerance: 10,
 		})
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  lmath.Vec3{0, 100, 0},
+			Position:  mgl64.Vec3{0, 100, 0},
 			MaxSpeed:  self.targetVel * 2.0,
 			Tolerance: 10,
 		})
 		self.navComputer.AddWaypoint(nav.Waypoint{
-			Position:  lmath.Vec3{0, 0, 0},
+			Position:  mgl64.Vec3{0, 0, 0},
 			MaxSpeed:  self.targetVel * 2.0,
 			Tolerance: 10,
 		})
@@ -105,7 +105,7 @@ func (self *OatmealPilot) Tick(tick int64) {
 func (self *OatmealPilot) orbit(scan avi.ScanResult) {
 
 	ctlp := scan.ControlPoints[self.ctlp]
-	vel := scan.Velocity.Length()
+	vel := scan.Velocity.Len()
 	force := scan.Mass * vel * vel / (ctlp.Radius)
 
 	if force > self.maxForce {
@@ -113,9 +113,9 @@ func (self *OatmealPilot) orbit(scan avi.ScanResult) {
 			glog.Infof("Not enough thruster force to have stable orbit, max: %f needed: %f", self.maxForce, force)
 		}
 	}
-	n, _ := ctlp.Position.Sub(scan.Position).Normalized()
-	accerlation := n.MulScalar(force / scan.Mass)
-	scaled := accerlation.MulScalar(1.0 / float64(len(self.Thrusters)))
+	n := ctlp.Position.Sub(scan.Position).Normalize()
+	accerlation := n.Mul(force / scan.Mass)
+	scaled := accerlation.Mul(1.0 / float64(len(self.Thrusters)))
 	for _, thruster := range self.Thrusters {
 		thruster.Thrust(scaled)
 	}

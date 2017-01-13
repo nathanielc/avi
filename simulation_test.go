@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,15 +24,15 @@ func TestShouldCollideStaticObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: lmath.Vec3{0, 0, 0},
-		velocity: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: lmath.Vec3{20, 0, 0},
-		velocity: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{20, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
@@ -45,15 +45,15 @@ func TestShouldNotCollideStaticObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: lmath.Vec3{0, 0, 0},
-		velocity: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: lmath.Vec3{21, 0, 0},
-		velocity: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{21, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
@@ -66,42 +66,42 @@ func TestShouldCollideStaticDynamicObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: lmath.Vec3{0, 0, 0},
-		velocity: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: lmath.Vec3{21, 0, 0},
+		position: mgl64.Vec3{21, 0, 0},
 		//Moving fast enough to arrive this tick
-		velocity: lmath.Vec3{-2 * 1 / SecondsPerTick, 0, 0},
+		velocity: mgl64.Vec3{-2 * 1 / SecondsPerTick, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
 
-	v2 := obj2.velocity.Length()
+	v2 := obj2.velocity.Len()
 
 	collision := collide(obj1, obj2, 1.0)
 	assert.True(collision)
-	assert.Equal(v2, obj1.velocity.Length())
-	assert.Equal(0.0, obj2.velocity.Length())
+	assert.Equal(v2, obj1.velocity.Len())
+	assert.Equal(0.0, obj2.velocity.Len())
 }
 
 func TestShouldNotCollideStaticDynamicObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: lmath.Vec3{0, 0, 0},
-		velocity: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: lmath.Vec3{21, 0, 0},
+		position: mgl64.Vec3{21, 0, 0},
 		//Moving away
-		velocity: lmath.Vec3{2 * 1 / SecondsPerTick, 0, 0},
+		velocity: mgl64.Vec3{2 * 1 / SecondsPerTick, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
@@ -114,17 +114,17 @@ func TestShouldCollideParallelDynamicObjects(t *testing.T) {
 	assert := assert.New(t)
 
 	obj1 := &objectT{
-		position: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{0, 0, 0},
 		//Moving away
-		velocity: lmath.Vec3{-1 * 1 / SecondsPerTick, 0, 0},
+		velocity: mgl64.Vec3{-1 * 1 / SecondsPerTick, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
 
 	obj2 := &objectT{
-		position: lmath.Vec3{21, 0, 0},
+		position: mgl64.Vec3{21, 0, 0},
 		//Moving faster
-		velocity: lmath.Vec3{-4 * 1 / SecondsPerTick, 0, 0},
+		velocity: mgl64.Vec3{-4 * 1 / SecondsPerTick, 0, 0},
 		mass:     1000,
 		radius:   10,
 	}
@@ -139,16 +139,16 @@ func TestCollisionShouldDoDamage(t *testing.T) {
 	health := 10.0
 
 	obj1 := &objectT{
-		position: lmath.Vec3{0, 0, 0},
-		velocity: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
 		mass:     1000,
 		radius:   10,
 		health:   health,
 	}
 
 	obj2 := &objectT{
-		position: lmath.Vec3{21, 0, 0},
-		velocity: lmath.Vec3{-2 * 1 / SecondsPerTick, 0, 0},
+		position: mgl64.Vec3{21, 0, 0},
+		velocity: mgl64.Vec3{-2 * 1 / SecondsPerTick, 0, 0},
 		mass:     1000,
 		radius:   10,
 		health:   health,
@@ -166,16 +166,16 @@ func TestElasticCollisionShouldNotDoDamage(t *testing.T) {
 	health := 10.0
 
 	obj1 := &objectT{
-		position: lmath.Vec3{0, 0, 0},
-		velocity: lmath.Vec3{0, 0, 0},
+		position: mgl64.Vec3{0, 0, 0},
+		velocity: mgl64.Vec3{0, 0, 0},
 		mass:     1000,
 		radius:   10,
 		health:   health,
 	}
 
 	obj2 := &objectT{
-		position: lmath.Vec3{21, 0, 0},
-		velocity: lmath.Vec3{-2 * 1 / SecondsPerTick, 0, 0},
+		position: mgl64.Vec3{21, 0, 0},
+		velocity: mgl64.Vec3{-2 * 1 / SecondsPerTick, 0, 0},
 		mass:     1000,
 		radius:   10,
 		health:   health,
@@ -188,8 +188,8 @@ func TestElasticCollisionShouldNotDoDamage(t *testing.T) {
 }
 
 func BenchmarkTick(b *testing.B) {
-	ship0 := newOneDirPilot(lmath.Vec3{-1, -1, -1})
-	ship1 := newOneDirPilot(lmath.Vec3{1, 1, 1})
+	ship0 := newOneDirPilot(mgl64.Vec3{-1, -1, -1})
+	ship1 := newOneDirPilot(mgl64.Vec3{1, 1, 1})
 	radius := 10000.0
 	maxVel := radius / 10
 	sim, err := NewSimulation(MapConf{
@@ -204,16 +204,16 @@ func BenchmarkTick(b *testing.B) {
 	if err != nil {
 		return
 	}
-	sim.AddShip("f1", lmath.Vec3{1e4, 1e4, 1e4}, ship0, ShipConf{})
-	sim.AddShip("f2", lmath.Vec3{-1e4, -1e4, -1e4}, ship1, ShipConf{})
+	sim.AddShip("f1", mgl64.Vec3{1e4, 1e4, 1e4}, ship0, ShipConf{})
+	sim.AddShip("f2", mgl64.Vec3{-1e4, -1e4, -1e4}, ship1, ShipConf{})
 	r := rand.New(rand.NewSource(42))
 	for i := 0; i < 1000; i++ {
-		pos := lmath.Vec3{
+		pos := mgl64.Vec3{
 			r.Float64() * radius,
 			r.Float64() * radius,
 			r.Float64() * radius,
 		}
-		vel := lmath.Vec3{
+		vel := mgl64.Vec3{
 			r.Float64() * maxVel,
 			r.Float64() * maxVel,
 			r.Float64() * maxVel,
@@ -233,10 +233,10 @@ type oneDirPilot struct {
 	engine   *Engine
 	thruster *Thruster
 	weapon   *Weapon
-	dir      lmath.Vec3
+	dir      mgl64.Vec3
 }
 
-func newOneDirPilot(dir lmath.Vec3) Pilot {
+func newOneDirPilot(dir mgl64.Vec3) Pilot {
 	return &oneDirPilot{dir: dir}
 }
 
@@ -250,10 +250,10 @@ func (self *oneDirPilot) JoinFleet(f string) {
 }
 
 func (self *oneDirPilot) LinkParts(shipParts []ShipPartConf, availableParts PartSetConf) ([]Part, error) {
-	self.engine = NewEngine001(lmath.Vec3{0, 0, 1})
+	self.engine = NewEngine001(mgl64.Vec3{0, 0, 1})
 
-	self.thruster = NewThruster001(lmath.Vec3{0, -1, 0})
-	self.weapon = NewWeaponFromConf(lmath.Vec3{1, 0, 0}, WeaponConf{
+	self.thruster = NewThruster001(mgl64.Vec3{0, -1, 0})
+	self.weapon = NewWeaponFromConf(mgl64.Vec3{1, 0, 0}, WeaponConf{
 		Mass:         1000,
 		Radius:       1,
 		Energy:       1,

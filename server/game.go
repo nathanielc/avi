@@ -146,9 +146,9 @@ func (g *game) Draw(t float64, scores map[string]float64, new, existing []avi.Dr
 		frame.Objects[i] = Object{
 			ID: uint32(d.ID()),
 			Position: gdvariant.Vector3{
-				X: float32(p.X * scale),
-				Y: float32(p.Y * scale),
-				Z: float32(p.Z * scale),
+				X: float32(p.X() * scale),
+				Y: float32(p.Y() * scale),
+				Z: float32(p.Z() * scale),
 			},
 			Radius: float32(d.Radius() * scale),
 			Model:  d.Texture(),
@@ -159,9 +159,9 @@ func (g *game) Draw(t float64, scores map[string]float64, new, existing []avi.Dr
 		frame.Objects[i] = Object{
 			ID: uint32(d.ID()),
 			Position: gdvariant.Vector3{
-				X: float32(p.X * scale),
-				Y: float32(p.Y * scale),
-				Z: float32(p.Z * scale),
+				X: float32(p.X() * scale),
+				Y: float32(p.Y() * scale),
+				Z: float32(p.Z() * scale),
 			},
 			Radius: float32(d.Radius() * scale),
 			Model:  d.Texture(),

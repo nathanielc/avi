@@ -5,7 +5,7 @@ import (
 	"math"
 	"reflect"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 var ErrOutOfEnergy = errors.New("out of energy")
@@ -39,7 +39,7 @@ type shipT struct {
 	currentEnergy float64
 }
 
-func newShip(id ID, sim *Simulation, fleet string, pos lmath.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
+func newShip(id ID, sim *Simulation, fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
 
 	newShip := &shipT{
 		sim:       sim,
@@ -105,9 +105,9 @@ func (ship *shipT) addParts(partsConf []ShipPartConf) error {
 			}
 			p1 := ship.parts[i]
 			p2 := ship.parts[j]
-			distance2 := p1.Position().Sub(p2.Position()).LengthSq()
+			distance := p1.Position().Sub(p2.Position()).Len()
 			radii := p1.Radius() + p2.Radius()
-			if radii*radii > distance2 {
+			if radii > distance {
 				err := errors.New("Error: ship parts overlap")
 				return err
 			}
@@ -121,7 +121,7 @@ func (ship *shipT) determineSize() {
 	maxRadius := 0.0
 
 	for _, part := range ship.parts {
-		radius := part.Position().Length() + part.Radius()
+		radius := part.Position().Len() + part.Radius()
 		if radius > maxRadius {
 			maxRadius = radius
 		}
@@ -149,14 +149,14 @@ func (ship *shipT) ConsumeEnergy(amount float64) error {
 }
 
 // Apply a given amount of thrust in a certain direction
-func (ship *shipT) ApplyThrust(dir lmath.Vec3, force float64) {
-	n, _ := dir.Normalized()
-	accerlation := n.MulScalar(force / ship.mass)
+func (ship *shipT) ApplyThrust(dir mgl64.Vec3, force float64) {
+	n := dir.Normalize()
+	accerlation := n.Mul(force / ship.mass)
 	ship.ApplyAcc(accerlation)
 }
 
-func (ship *shipT) ApplyAcc(dir lmath.Vec3) {
-	ship.setVelocity(ship.Velocity().Add(dir.MulScalar(SecondsPerTick)))
+func (ship *shipT) ApplyAcc(dir mgl64.Vec3) {
+	ship.setVelocity(ship.Velocity().Add(dir.Mul(SecondsPerTick)))
 }
 
 func (ship *shipT) Tick() {

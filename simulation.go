@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
 )
 
@@ -114,7 +114,7 @@ func (sim *Simulation) getNextID() ID {
 	return id
 }
 
-func (sim *Simulation) AddShip(fleet string, pos lmath.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
+func (sim *Simulation) AddShip(fleet string, pos mgl64.Vec3, pilot Pilot, conf ShipConf) (*shipT, error) {
 	ship, err := newShip(sim.getNextID(), sim, fleet, pos, pilot, conf)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (sim *Simulation) removeShip(i int) {
 
 }
 
-func (sim *Simulation) addProjectile(pos, vel lmath.Vec3, mass, radius float64) {
+func (sim *Simulation) addProjectile(pos, vel mgl64.Vec3, mass, radius float64) {
 	p := &projectile{
 		objectT{
 			id:       sim.getNextID(),
@@ -172,7 +172,7 @@ func (sim *Simulation) addAsteroid(aConf AsteroidConf) {
 }
 
 // Adds a fleet to the imulation based on a given fleet config
-func (sim *Simulation) addFleet(center lmath.Vec3, fleet FleetConf, maxMass float64) error {
+func (sim *Simulation) addFleet(center mgl64.Vec3, fleet FleetConf, maxMass float64) error {
 
 	fleetMass := 0.0
 
@@ -347,7 +347,7 @@ func (sim *Simulation) scoreFleets() float64 {
 	for _, cp := range sim.ctlps {
 		influence2 := cp.influence * cp.influence
 		for _, ship := range sim.ships {
-			distance2 := cp.position.Sub(ship.position).LengthSq()
+			distance2 := LengthSq(cp.position.Sub(ship.position))
 			if distance2 < influence2 {
 				sim.scores[ship.fleet] += cp.points * SecondsPerTick
 			}
@@ -407,7 +407,7 @@ func (sim *Simulation) propagateObjects() {
 
 func (sim *Simulation) propagateObject(obj Object) {
 	if obj != nil {
-		obj.setPosition(obj.Position().Add(obj.Velocity().MulScalar(SecondsPerTick)))
+		obj.setPosition(obj.Position().Add(obj.Velocity().Mul(SecondsPerTick)))
 	}
 }
 
@@ -457,7 +457,7 @@ projectiles:
 		}
 		// Projectile didn't collide so keep it around, unless
 		// it left the play area.
-		if p.Position().Length() < sim.radius {
+		if p.Position().Len() < sim.radius {
 			projs = append(projs, p)
 		}
 	}
@@ -471,11 +471,11 @@ func collide(obj1, obj2 Object, cor float64) bool {
 	// Convert to the moving reference frame of obj2
 	staticPos := obj2.Position()
 	dynamicPos := obj1.Position()
-	dynamicVel := obj1.Velocity().Sub(obj2.Velocity()).MulScalar(SecondsPerTick)
-	maxRange := dynamicVel.Length()
+	dynamicVel := obj1.Velocity().Sub(obj2.Velocity()).Mul(SecondsPerTick)
+	maxRange := dynamicVel.Len()
 
 	delta := staticPos.Sub(dynamicPos)
-	distance := delta.Length()
+	distance := delta.Len()
 
 	sumRadii := obj1.Radius() + obj2.Radius()
 	distanceRadii := distance - sumRadii
@@ -488,7 +488,7 @@ func collide(obj1, obj2 Object, cor float64) bool {
 		//	return true
 	}
 
-	norm, _ := dynamicVel.Normalized()
+	norm := dynamicVel.Normalize()
 
 	direction := norm.Dot(delta)
 	// Going the wrong direction
@@ -522,8 +522,8 @@ func collide(obj1, obj2 Object, cor float64) bool {
 	ratio := travelDist / maxRange
 
 	//Place object next to each other at point of collision
-	v1 := obj1.Velocity().MulScalar(ratio * SecondsPerTick)
-	v2 := obj2.Velocity().MulScalar(ratio * SecondsPerTick)
+	v1 := obj1.Velocity().Mul(ratio * SecondsPerTick)
+	v2 := obj2.Velocity().Mul(ratio * SecondsPerTick)
 
 	obj1.setPosition(obj1.Position().Add(v1))
 	obj2.setPosition(obj2.Position().Add(v2))
@@ -535,7 +535,7 @@ func collide(obj1, obj2 Object, cor float64) bool {
 }
 
 func resolveCollision(obj1, obj2 Object, cor float64) {
-	norm, _ := obj1.Position().Sub(obj2.Position()).Normalized()
+	norm := obj1.Position().Sub(obj2.Position()).Normalize()
 
 	// inverse mass
 	im1 := 1.0 / obj1.Mass()
@@ -550,21 +550,21 @@ func resolveCollision(obj1, obj2 Object, cor float64) {
 
 	actual := (-(1.0 + cor) * vn) / (im1 + im2)
 	elastic := (-2.0 * vn) / (im1 + im2)
-	impulse := norm.MulScalar(actual)
+	impulse := norm.Mul(actual)
 
 	damage := impulseToDamage * (elastic - actual)
 
 	obj1.setHealth(obj1.Health() - damage)
 	obj2.setHealth(obj2.Health() - damage)
 
-	obj1.setVelocity(v1.Add(impulse.MulScalar(im1)))
-	obj2.setVelocity(v2.Sub(impulse.MulScalar(im2)))
+	obj1.setVelocity(v1.Add(impulse.Mul(im1)))
+	obj2.setVelocity(v2.Sub(impulse.Mul(im2)))
 }
 
 func (sim *Simulation) destroyShips() {
 	ships := sim.ships[0:0]
 	for _, ship := range sim.ships {
-		if ship.Health() <= 0 || ship.Position().Length() > sim.radius {
+		if ship.Health() <= 0 || ship.Position().Len() > sim.radius {
 			sim.deleted = append(sim.deleted, ship.ID())
 			sim.survivors[ship.fleet]--
 		} else {

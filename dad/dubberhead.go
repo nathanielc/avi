@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
@@ -19,7 +19,7 @@ var seed int64 = 0
 
 type DubberHeadPilot struct {
 	avi.GenericPilot
-	dir           lmath.Vec3
+	dir           mgl64.Vec3
 	fired         bool
 	navComputer   *nav.Nav
 	cooldownTicks int64
@@ -27,21 +27,21 @@ type DubberHeadPilot struct {
 	targetI       velPoint
 	targetF       velPoint
 	ctlp          avi.ID
-	ctlpBias      lmath.Vec3
+	ctlpBias      mgl64.Vec3
 	ctlpBiasRand  *rand.Rand
 }
 
 type velPoint struct {
-	velocity lmath.Vec3
+	velocity mgl64.Vec3
 	tick     int64
 }
 
 func NewDubberHead() avi.Pilot {
 	seed++
 	ctlpBiasRand := rand.New(rand.NewSource(seed))
-	n, _ := (lmath.Vec3{ctlpBiasRand.Float64(), ctlpBiasRand.Float64(), ctlpBiasRand.Float64()}).Normalized()
+	n := (mgl64.Vec3{ctlpBiasRand.Float64(), ctlpBiasRand.Float64(), ctlpBiasRand.Float64()}).Normalize()
 	return &DubberHeadPilot{
-		dir:           lmath.Vec3{1, 1, 1},
+		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        avi.NilID,
 		ctlp:          avi.NilID,
@@ -77,7 +77,7 @@ func (self *DubberHeadPilot) Tick(tick int64) {
 		}
 	}
 	if glog.V(4) {
-		glog.Infoln("DubberHead", scan.Health, scan.Position, scan.Velocity.Length())
+		glog.Infoln("DubberHead", scan.Health, scan.Position, scan.Velocity.Len())
 	}
 	self.navCtlP(tick, scan)
 
@@ -105,7 +105,7 @@ func (self *DubberHeadPilot) navCtlP(time int64, scan avi.ScanResult) {
 
 	ctlp := scan.ControlPoints[self.ctlp]
 
-	distance := ctlp.Position.Sub(scan.Position).Length()
+	distance := ctlp.Position.Sub(scan.Position).Len()
 	tolerance := (distance - ctlp.Influence) / 2.0
 	if time%10 == 0 {
 		tolerance /= 100
@@ -115,7 +115,7 @@ func (self *DubberHeadPilot) navCtlP(time int64, scan avi.ScanResult) {
 		tolerance = 30
 	}
 	wp := nav.Waypoint{
-		Position:  ctlp.Position.Add(self.ctlpBias.MulScalar(ctlp.Radius + scan.Radius + tolerance)),
+		Position:  ctlp.Position.Add(self.ctlpBias.Mul(ctlp.Radius + scan.Radius + tolerance)),
 		MaxSpeed:  tolerance * 0.4,
 		Tolerance: tolerance,
 	}
@@ -131,7 +131,7 @@ func (self *DubberHeadPilot) fire(tick int64, scan avi.ScanResult) {
 			if ship.Fleet == self.Fleet {
 				continue
 			}
-			d := ship.Position.Sub(scan.Position).Length()
+			d := ship.Position.Sub(scan.Position).Len()
 			if d < distance || distance == 0 {
 				distance = d
 				self.target = id
@@ -147,7 +147,7 @@ func (self *DubberHeadPilot) fire(tick int64, scan avi.ScanResult) {
 	targetPos := target.Position
 	targetVel := target.Velocity
 
-	if targetPos.Sub(scan.Position).LengthSq() > 1e6 {
+	if avi.LengthSq(targetPos.Sub(scan.Position)) > 1e6 {
 		self.target = avi.NilID
 		if glog.V(3) {
 			glog.Infoln("Target is too far away choosing another target")
@@ -162,7 +162,7 @@ func (self *DubberHeadPilot) fire(tick int64, scan avi.ScanResult) {
 
 			acc := self.targetF.velocity.
 				Sub(self.targetI.velocity).
-				MulScalar(1.0 / (avi.SecondsPerTick * float64(self.targetF.tick-self.targetI.tick)))
+				Mul(1.0 / (avi.SecondsPerTick * float64(self.targetF.tick-self.targetI.tick)))
 
 			if glog.V(4) {
 				glog.Infoln("Acc: ", acc)
@@ -178,10 +178,10 @@ func (self *DubberHeadPilot) fire(tick int64, scan avi.ScanResult) {
 				continue
 			}
 
-			dir := deltaVel.Add(deltaPos.MulScalar(1 / time)).Add(acc.MulScalar(time * 0.5))
+			dir := deltaVel.Add(deltaPos.Mul(1 / time)).Add(acc.Mul(time * 0.5))
 
 			if glog.V(3) {
-				glog.Infoln(dir, dir.Length())
+				glog.Infoln(dir, dir.Len())
 			}
 
 			err := weapon.Fire(dir)
@@ -197,12 +197,12 @@ func (self *DubberHeadPilot) fire(tick int64, scan avi.ScanResult) {
 	}
 }
 
-func calcT(deltaPos, deltaVel lmath.Vec3, va float64) float64 {
+func calcT(deltaPos, deltaVel mgl64.Vec3, va float64) float64 {
 
-	vt := deltaVel.Length()
-	x := deltaPos.Length()
-	nVel, _ := deltaVel.Normalized()
-	nPos, _ := deltaPos.Normalized()
+	vt := deltaVel.Len()
+	x := deltaPos.Len()
+	nVel := deltaVel.Normalize()
+	nPos := deltaPos.Normalize()
 	ctheta := nPos.Dot(nVel)
 
 	a := va*va - vt*vt

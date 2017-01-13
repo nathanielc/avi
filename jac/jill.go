@@ -1,7 +1,7 @@
 package jac
 
 import (
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 	"github.com/golang/glog"
 	"github.com/nathanielc/avi"
 	"github.com/nathanielc/avi/nav"
@@ -13,7 +13,7 @@ func init() {
 
 type JillPilot struct {
 	avi.GenericPilot
-	dir           lmath.Vec3
+	dir           mgl64.Vec3
 	fired         bool
 	navComputer   *nav.Nav
 	cooldownTicks int64
@@ -22,7 +22,7 @@ type JillPilot struct {
 
 func NewJill() avi.Pilot {
 	return &JillPilot{
-		dir:           lmath.Vec3{1, 1, 1},
+		dir:           mgl64.Vec3{1, 1, 1},
 		cooldownTicks: 1,
 		target:        avi.NilID,
 	}
@@ -56,7 +56,7 @@ func (self *JillPilot) Tick(tick int64) {
 		}
 	}
 	if glog.V(3) {
-		glog.Infoln("jill", scan.Health, scan.Position, scan.Velocity.Length(), len(scan.Ships))
+		glog.Infoln("jill", scan.Health, scan.Position, scan.Velocity.Len(), len(scan.Ships))
 	}
 	if !targetExists(self.target, scan.Ships) {
 		distance := 0.0
@@ -64,7 +64,7 @@ func (self *JillPilot) Tick(tick int64) {
 			if ship.Fleet == self.Fleet {
 				continue
 			}
-			d := ship.Position.Sub(scan.Position).Length()
+			d := ship.Position.Sub(scan.Position).Len()
 			if d < distance || distance == 0 {
 				distance = d
 				self.target = id
@@ -87,9 +87,9 @@ func (self *JillPilot) Tick(tick int64) {
 	if tick%self.cooldownTicks == 0 {
 		for _, weapon := range self.Weapons {
 			vel := weapon.GetAmmoVel()
-			time := scan.Position.Sub(targetPos).Length() / vel
+			time := scan.Position.Sub(targetPos).Len() / vel
 
-			dir := targetPos.Add(targetVel.MulScalar(time)).Sub(scan.Position).Sub(scan.Velocity)
+			dir := targetPos.Add(targetVel.Mul(time)).Sub(scan.Position).Sub(scan.Velocity)
 
 			err := weapon.Fire(dir)
 			if err != nil {

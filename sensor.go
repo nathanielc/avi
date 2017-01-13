@@ -5,7 +5,7 @@ import (
 	"math"
 	"sync"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 const detectionThreshold = 0.0
@@ -30,7 +30,7 @@ type SensorConf struct {
 	Power  float64 `yaml:"power" json:"power"`
 }
 
-func NewSensor001(pos lmath.Vec3) *Sensor {
+func NewSensor001(pos mgl64.Vec3) *Sensor {
 	return &Sensor{
 		partT: partT{
 			objectT: objectT{
@@ -46,7 +46,7 @@ func NewSensor001(pos lmath.Vec3) *Sensor {
 	}
 }
 
-func NewSensorFromConf(pos lmath.Vec3, conf SensorConf) *Sensor {
+func NewSensorFromConf(pos mgl64.Vec3, conf SensorConf) *Sensor {
 	return &Sensor{
 		partT: partT{
 			objectT: objectT{
@@ -63,8 +63,8 @@ func NewSensorFromConf(pos lmath.Vec3, conf SensorConf) *Sensor {
 }
 
 type ScanResult struct {
-	Position      lmath.Vec3
-	Velocity      lmath.Vec3
+	Position      mgl64.Vec3
+	Velocity      mgl64.Vec3
 	Mass          float64
 	Radius        float64
 	Health        float64
@@ -91,15 +91,15 @@ func (sr ScanResult) Done() {
 }
 
 type ShipSR struct {
-	Position lmath.Vec3
-	Velocity lmath.Vec3
+	Position mgl64.Vec3
+	Velocity mgl64.Vec3
 	Radius   float64
 	Fleet    string
 }
 
 type CtlPSR struct {
-	Position  lmath.Vec3
-	Velocity  lmath.Vec3
+	Position  mgl64.Vec3
+	Velocity  mgl64.Vec3
 	Radius    float64
 	Points    float64
 	Influence float64
@@ -140,7 +140,7 @@ func (self *Sensor) searchShips() map[ID]ShipSR {
 			continue
 		}
 
-		distance2 := ship.position.Sub(self.ship.position).LengthSq()
+		distance2 := LengthSq(ship.position.Sub(self.ship.position))
 
 		i := self.intensity(distance2)
 
@@ -160,7 +160,7 @@ func (self *Sensor) searchShips() map[ID]ShipSR {
 func (self *Sensor) searchCPs() map[ID]CtlPSR {
 	ctlps := self.ctlps.Get().(map[ID]CtlPSR)
 	for _, ctlp := range self.ship.sim.ctlps {
-		distance2 := ctlp.position.Sub(self.ship.position).LengthSq()
+		distance2 := LengthSq(ctlp.position.Sub(self.ship.position))
 
 		i := self.intensity(distance2)
 

@@ -3,7 +3,7 @@ package avi
 import (
 	"errors"
 
-	"azul3d.org/engine/lmath"
+	"github.com/go-gl/mathgl/mgl64"
 )
 
 type Engine struct {
@@ -19,7 +19,7 @@ type EngineConf struct {
 	Energy float64 `yaml:"energy" json:"energy"`
 }
 
-func NewEngine001(pos lmath.Vec3) *Engine {
+func NewEngine001(pos mgl64.Vec3) *Engine {
 	return &Engine{
 		partT: partT{
 			objectT: objectT{
@@ -32,7 +32,7 @@ func NewEngine001(pos lmath.Vec3) *Engine {
 	}
 }
 
-func NewEngineFromConf(pos lmath.Vec3, conf EngineConf) *Engine {
+func NewEngineFromConf(pos mgl64.Vec3, conf EngineConf) *Engine {
 	return &Engine{
 		partT: partT{
 			objectT: objectT{
