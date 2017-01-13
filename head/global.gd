@@ -5,12 +5,18 @@ var current_scene = null
 var game_id = null
 var error_msg = ""
 var is_live = false
+var conf = ConfigFile.new()
+var _conf_path = OS.get_data_dir()+"/avi.ini"
 
 var _error = preload("res://error.gd")
 
 func _ready():
 	var root = get_tree().get_root()
 	current_scene = root.get_child(root.get_child_count() - 1)
+	conf.load(_conf_path)
+	
+func save():
+	conf.save(_conf_path)
 
 func err(msg):
 	return _error.new(msg, null, null)

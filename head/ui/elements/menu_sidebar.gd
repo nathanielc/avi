@@ -10,7 +10,8 @@ func _ready():
 	get_node("fullscreen").connect("pressed", self, "_on_fullscreen_pressed")
 	get_node("quit").connect("pressed", self, "_on_quit_pressed")
 	set_process(true)
-	
+	var fullscreen = global.conf.get_value("ui", "fullscreen", false)
+	OS.set_window_fullscreen(fullscreen)
 
 func _clear_nodes():
 	global.clear_error()
@@ -37,4 +38,7 @@ func _on_quit_pressed():
 	get_tree().quit()
 	
 func _on_fullscreen_pressed():
-	OS.set_window_fullscreen(true)
+	var fullscreen = !OS.is_window_fullscreen()
+	OS.set_window_fullscreen(fullscreen)
+	global.conf.set_value("ui", "fullscreen", fullscreen)
+	global.save()

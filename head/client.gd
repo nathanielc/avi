@@ -190,25 +190,16 @@ func get_frames(game_id, start, stop):
 			state = second_newline
 	if code != 200:
 		# Read error message
-		buf.resize(0)
-		var depth = 0
-		while true:
-			var b = tcp.get_u8()
-			if b == 123:
-				depth += 1
-			elif b == 125:
-				depth -= 1
-			if depth == 0:
-				break
-			buf.append(b)
+		var res = tcp.get_data(int(headers['Content-Length']))
+		var data = res[1].get_string_from_utf8()
 		var r = {}
-		r.parse_json(buf.get_string_from_utf8())
-		var err_msg = r['error']
+		r.parse_json(data)
+		var err_msg = data
+		if r.has('error'):
+			err_msg = r['error']
 		return global.err("non 200 repsonse code %d: %s" % [code, err_msg])
 	if !headers.has('Frame-Count') or !headers.has('Frames-Per-Second') or !headers.has('Total-Frame-Count') or !headers.has('Stop-Frame'):
 		return global.err("failed to understand server response")
 	# The remaing data is variant encoded objects
-	#var pps = PacketPeerStream.new()
-	#pps.set_stream_peer(tcp)
 	var frames = preload("res://frames.gd").new(tcp, int(headers['Content-Length']), float(headers['Frames-Per-Second']), int(headers['Stop-Frame']), int(headers['Total-Frame-Count']))
 	return global.ok(frames)
