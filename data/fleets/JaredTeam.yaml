@@ -4,32 +4,32 @@ ships:
   - pilot: jim
     position: [300, 0, 0]
     parts: *J_WING_PARTS
-    texture: magic_sphere_2
+    texture: jship
     hull_strength: 150
   - pilot: jim
     position: [-100, -100, -100]
     parts: *J_WING_PARTS
-    texture: orange_sphere
+    texture: jship
     hull_strength: 150
   - pilot: jim
     position: [0, 0, 100]
     parts: *J_WING_PARTS
-    texture: magic_sphere_1
+    texture: jship
     hull_strength: 150
   - pilot: jim
     position: [10, 0, -100]
     parts: *J_WING_PARTS
-    texture: magic_sphere
+    texture: jship
     hull_strength: 150
   - pilot: jim
     position: [-175, 100, -100]
     parts: *DRONE_PARTS
-    texture: Drone0
+    texture: jship
     hull_strength: 150
   - pilot: jim
     position: [-175, 100, 0]
     parts: *DRONE_PARTS
-    texture: Drone0
+    texture: jship
     hull_strength: 150
 
 

@@ -2,6 +2,10 @@ extends Control
 
 func _ready():
 	get_node("watch").connect("pressed", self, "_on_watch_pressed")
+	
+	if global.client == null:
+		global.goto_scene("res://ui/views/main.tscn")
+		return
 	var err = global.client.get_games()
 	if !err.is_ok():
 		global.fail(err)

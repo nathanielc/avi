@@ -5,9 +5,12 @@ extends Control
 # var b = "textvar"
 
 func _ready():
-	# Called every time the node is added to the scene.
-	# Initialization here
 	get_node("start").connect("pressed", self, "_on_start_pressed")
+	
+	if global.client == null:
+		global.goto_scene("res://ui/views/main.tscn")
+		return
+		
 	var err = global.client.get_maps()
 	if !err.is_ok():
 		global.fail(err)
