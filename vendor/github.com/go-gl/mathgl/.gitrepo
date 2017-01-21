@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/go-gl/mathgl.git
+	branch = master
+	commit = 9e3ea3e806141087fbb83a8a8e7038bf73eff120
+	parent = 71a03ce989e24080874564e66e5c736b4b3b681f
+	cmdver = 0.3.0
