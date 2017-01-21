@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/mitchellh/mapstructure.git
+	branch = master
+	commit = ed105d635dfa9ea7133f7c79f1eb36203fc3a156
+	parent = 616fc699e91600efb09b6e3756f1cf03c17a6098
+	cmdver = 0.3.0
