@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/gorilla/handlers.git
+	branch = master
+	commit = 3a5767ca75ece5f7f1440b1d16975247f8d8b221
+	parent = 2d954cbdf0cede8dced26dd3f7671b96ed94a1b4
+	cmdver = 0.3.0
