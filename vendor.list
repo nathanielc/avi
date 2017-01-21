@@ -1,0 +1,8 @@
+github.com/go-gl/mathgl
+github.com/golang/glog
+github.com/gorilla/handlers
+github.com/gorilla/mux
+github.com/mitchellh/mapstructure
+github.com/nathanielc/gdvariant
+github.com/pkg/errors
+gopkg.in/yaml.v2

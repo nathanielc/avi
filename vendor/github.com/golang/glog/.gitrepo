@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/golang/glog.git
+	branch = master
+	commit = 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+	parent = 65129aaf611c351d156b01c78049b2bb7846bd21
+	cmdver = 0.3.0

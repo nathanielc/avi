@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/nathanielc/gdvariant.git
+	branch = master
+	commit = 1d346ba64d50794987f2730a74281ccfa7fe7387
+	parent = 1e1a196810493e74ea71be2da0f62e7a60130dcc
+	cmdver = 0.3.0
