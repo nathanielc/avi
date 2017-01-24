@@ -19,6 +19,7 @@ var dataDir = flag.String("data", "data", "Data directory.")
 func main() {
 
 	flag.Parse()
+	flag.Set("logtostderr", "true")
 
 	if *cpuProfile != "" {
 		f, err := os.Create(*cpuProfile)
